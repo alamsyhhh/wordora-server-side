@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"time"
 	"wordora/app/modules/auth"
+	"wordora/app/modules/category"
+
+	"wordora/app/utils/paseto"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -23,7 +26,10 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 	api := router.Group("/v1/api")
 
+	tokenHelper := paseto.NewTokenHelper()
+
 	auth.SetupAuthRoutes(api.Group("/auth"), db)
+	category.SetupCategoryRoutes(api.Group("/categories"), db, tokenHelper)
 
 	return router
 }

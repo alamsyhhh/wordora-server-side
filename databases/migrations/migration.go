@@ -24,3 +24,17 @@ func MigrateDatabase(db *sql.DB) {
 
 	log.Printf("✅ Migration successful! Total applied: %d", n)
 }
+
+func RollbackDatabase(db *sql.DB) {
+	migrations := &migrate.EmbedFileSystemMigrationSource{
+		FileSystem: dbMigrations,
+		Root:       "sql_migrations",
+	}
+
+	n, err := migrate.Exec(db, "postgres", migrations, migrate.Down)
+	if err != nil {
+		log.Fatalf("❌ Rollback failed: %v", err)
+	}
+
+	log.Printf("✅ Rollback successful! Total reverted: %d", n)
+}

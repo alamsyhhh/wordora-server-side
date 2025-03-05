@@ -31,6 +31,7 @@ func (t *TokenHelper) GenerateToken(user *users.User) (string, error) {
 
 	payload := map[string]interface{}{
 		"sub": user.ID,
+		"role": user.Role,
 		"exp": expiration.Unix(),
 	}
 

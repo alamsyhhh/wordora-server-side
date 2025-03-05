@@ -27,3 +27,11 @@ func (r *UserRepository) GetUserByEmail(email string) (*User, error) {
 	}
 	return &user, err
 }
+
+func (r *UserRepository) UpdateUser(user *User) error {
+    _, err := r.db.Update("users").
+        Set(user).
+        Where(goqu.Ex{"id": user.ID}).
+        Executor().Exec()
+    return err
+}
