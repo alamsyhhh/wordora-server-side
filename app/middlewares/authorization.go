@@ -43,7 +43,6 @@ func AuthMiddleware(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 	}
 }
 
-
 func AdminOnly(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")

@@ -6,6 +6,7 @@ import (
 	"wordora/app/modules/article"
 	"wordora/app/modules/auth"
 	"wordora/app/modules/category"
+	"wordora/app/modules/reactions"
 
 	"wordora/app/utils/paseto"
 
@@ -32,6 +33,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	auth.SetupAuthRoutes(api.Group("/auth"), db)
 	category.SetupCategoryRoutes(api.Group("/categories"), db, tokenHelper)
 	article.SetupArticleRoutes(api.Group("/articles"), db, tokenHelper)
+	reactions.SetupReactionsRoutes(api.Group("/reactions"), db, tokenHelper)
 
 	return router
 }

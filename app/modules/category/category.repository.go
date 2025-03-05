@@ -9,7 +9,6 @@ import (
 type CategoryRepository interface {
 	CreateCategory(category *Category) error
 	GetAllCategories() ([]Category, error)
-	// GetCategoryByID(id string) (*Category, error)
 	UpdateCategory(id string, name string) error
 	DeleteCategory(id string) error
 }
@@ -32,18 +31,6 @@ func (r *categoryRepositoryImpl) GetAllCategories() ([]Category, error) {
 	err := r.db.From("categories").ScanStructs(&categories)
 	return categories, err
 }
-
-// func (r *categoryRepositoryImpl) GetCategoryByID(id string) (*Category, error) {
-// 	var category Category
-// 	found, err := r.db.From("categories").Where(goqu.Ex{"id": id}).ScanStruct(&category)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if !found {
-// 		return nil, errors.New("category not found")
-// 	}
-// 	return &category, nil
-// }
 
 func (r *categoryRepositoryImpl) UpdateCategory(id string, name string) error {
 	_, err := r.db.Update("categories").
