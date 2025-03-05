@@ -3,6 +3,7 @@ package routes
 import (
 	"database/sql"
 	"time"
+	"wordora/app/modules/article"
 	"wordora/app/modules/auth"
 	"wordora/app/modules/category"
 
@@ -30,6 +31,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 	auth.SetupAuthRoutes(api.Group("/auth"), db)
 	category.SetupCategoryRoutes(api.Group("/categories"), db, tokenHelper)
+	article.SetupArticleRoutes(api.Group("/articles"), db, tokenHelper)
 
 	return router
 }

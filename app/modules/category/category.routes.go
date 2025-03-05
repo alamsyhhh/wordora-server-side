@@ -14,9 +14,15 @@ func SetupCategoryRoutes(router *gin.RouterGroup, db *sql.DB, tokenHelper *paset
 	categoryController := NewCategoryController(categoryService)
 
 	// adminAuthorization := middlewares.AdminOnly(tokenHelper)
+	// authMiddleware := middlewares.AuthMiddleware(tokenHelper)
 
 	// router.POST("/", adminAuthorization, categoryController.CreateCategory)
+
 	router.GET("/", categoryController.GetAllCategories)
+	// protected := router.Group("/")
+	// protected.Use(authMiddleware)
+	// protected.GET("/", categoryController.GetAllCategories)
+
 	// router.GET("/:id", categoryController.GetCategoryByID)
 	// router.PUT("/:id", adminAuthorization, categoryController.UpdateCategory)
 	// router.DELETE("/:id", adminAuthorization, categoryController.DeleteCategory)

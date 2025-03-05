@@ -3,7 +3,6 @@ package mail
 import (
 	"bytes"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net/smtp"
 	"os"
@@ -25,7 +24,7 @@ func SendOTPEmail(toEmail string, otpCode string) error {
 	templateFile := filepath.Join(basePath, "app", "utils", "mail", "email-verification.html")
 
 	// read template HTML from file
-	templateContent, err := ioutil.ReadFile(templateFile)
+	templateContent, err := os.ReadFile(templateFile)
 	if err != nil {
 		log.Println("Failed to read email template:", err)
 		return err

@@ -8,9 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AdminOnly(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
+func AuthMiddleware(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Ambil token dari header Authorization
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
@@ -18,7 +17,6 @@ func AdminOnly(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 			return
 		}
 
-		// Format token harus "Bearer <token>"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
@@ -26,7 +24,6 @@ func AdminOnly(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 			return
 		}
 
-		// Validasi token
 		payload, err := tokenHelper.ValidateToken(parts[1])
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
@@ -34,7 +31,42 @@ func AdminOnly(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 			return
 		}
 
-		// Periksa apakah role adalah admin
+		userID, ok := payload["sub"].(string)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token payload"})
+			c.Abort()
+			return
+		}
+
+		c.Set("sub", userID)
+		c.Next()
+	}
+}
+
+
+func AdminOnly(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+			c.Abort()
+			return
+		}
+
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
+			c.Abort()
+			return
+		}
+
+		payload, err := tokenHelper.ValidateToken(parts[1])
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			c.Abort()
+			return
+		}
+
 		role, ok := payload["role"].(string)
 		if !ok || role != "admin" {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
@@ -42,7 +74,6 @@ func AdminOnly(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 			return
 		}
 
-		// Lanjutkan ke handler berikutnya jika valid
 		c.Next()
 	}
 }

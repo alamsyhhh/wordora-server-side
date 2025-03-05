@@ -105,6 +105,11 @@ func (s *AuthService) Login(ctx *gin.Context, req dto.LoginRequest) {
 		return
 	}
 
+	if !user.IsEmailVerified {
+		common.GenerateErrorResponse(ctx, 403, "Email not verified", nil)
+		return
+	}
+
 	if !hash.CheckPassword(req.Password, user.Password) {
 		common.GenerateErrorResponse(ctx, 401, "Invalid credentials", nil)
 		return

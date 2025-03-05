@@ -27,7 +27,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// log.Println("🚀 Running database migrations...")
 	migrations.MigrateDatabase(db)
 	// migrations.RollbackDatabase(db)
 

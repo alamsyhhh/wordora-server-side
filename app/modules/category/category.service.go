@@ -2,18 +2,20 @@ package category
 
 import (
 	"log"
+	"net/http"
 	"time"
 	"wordora/app/modules/category/dto"
+	"wordora/app/utils/common"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type CategoryService interface {
-	CreateCategory(req dto.CreateCategoryRequest) (*dto.CategoryResponse, error)
-	GetAllCategories() ([]dto.CategoryResponse, error)
-	// GetCategoryByID(id string) (*dto.CategoryResponse, error)
-	UpdateCategory(id string, req dto.UpdateCategoryRequest) error
-	DeleteCategory(id string) error
+	CreateCategory(ctx *gin.Context)
+	GetAllCategories(ctx *gin.Context)
+	UpdateCategory(ctx *gin.Context)
+	DeleteCategory(ctx *gin.Context)
 }
 
 type categoryServiceImpl struct {
@@ -24,63 +26,71 @@ func NewCategoryService(repo CategoryRepository) CategoryService {
 	return &categoryServiceImpl{repo: repo}
 }
 
-func (s *categoryServiceImpl) CreateCategory(req dto.CreateCategoryRequest) (*dto.CategoryResponse, error) {
+func (s *categoryServiceImpl) CreateCategory(ctx *gin.Context) {
+	var req dto.CreateCategoryRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		common.GenerateErrorResponse(ctx, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
 	category := Category{
-		ID:      uuid.New().String(),
-		Name:    req.Name,
+		ID:         uuid.New().String(),
+		Name:       req.Name,
 		Created_at: time.Now(),
 		Updated_at: time.Now(),
 	}
 
 	if err := s.repo.CreateCategory(&category); err != nil {
 		log.Printf("Error inserting category: %v", err)
-		return nil, err
+		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to create category", nil)
+		return
 	}
 
-	return &dto.CategoryResponse{
-		ID:      category.ID,
-		Name:    category.Name,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}, nil
+	common.GenerateSuccessResponseWithData(ctx, "Category created successfully", category)
 }
 
-func (s *categoryServiceImpl) GetAllCategories() ([]dto.CategoryResponse, error) {
+func (s *categoryServiceImpl) GetAllCategories(ctx *gin.Context) {
 	categories, err := s.repo.GetAllCategories()
 	if err != nil {
-		return nil, err
+		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch categories", nil)
+		return
 	}
 
 	var responses []dto.CategoryResponse
 	for _, category := range categories {
 		responses = append(responses, dto.CategoryResponse{
-			ID:      category.ID,
-			Name:    category.Name,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			ID:        category.ID,
+			Name:      category.Name,
+			CreatedAt: category.Created_at,
+			UpdatedAt: category.Updated_at,
 		})
 	}
-	return responses, nil
+
+	common.GenerateSuccessResponseWithData(ctx, "Categories fetched successfully", responses)
 }
 
-// func (s *categoryServiceImpl) GetCategoryByID(id string) (*dto.CategoryResponse, error) {
-// 	category, err := s.repo.GetCategoryByID(id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (s *categoryServiceImpl) UpdateCategory(ctx *gin.Context) {
+	id := ctx.Param("id")
+	var req dto.UpdateCategoryRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		common.GenerateErrorResponse(ctx, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
 
-// 	return &dto.CategoryResponse{
-// 		ID:      category.ID,
-// 		Name:    category.Name,
-// 		CreatedAt: time.Now(),
-// 		UpdatedAt: time.Now(),
-// 	}, nil
-// }
+	if err := s.repo.UpdateCategory(id, req.Name); err != nil {
+		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to update category", nil)
+		return
+	}
 
-func (s *categoryServiceImpl) UpdateCategory(id string, req dto.UpdateCategoryRequest) error {
-	return s.repo.UpdateCategory(id, req.Name)
+	common.GenerateSuccessResponse(ctx, "Category updated successfully")
 }
 
-func (s *categoryServiceImpl) DeleteCategory(id string) error {
-	return s.repo.DeleteCategory(id)
+func (s *categoryServiceImpl) DeleteCategory(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if err := s.repo.DeleteCategory(id); err != nil {
+		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete category", nil)
+		return
+	}
+
+	common.GenerateSuccessResponse(ctx, "Category deleted successfully")
 }
