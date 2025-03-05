@@ -13,9 +13,8 @@ func SetupReactionsRoutes(router *gin.RouterGroup, db *sql.DB, tokenHelper *pase
 	reactionService := NewReactionService(reactionRepo)
 	reactionController := NewReactionController(reactionService)
 
-
-	authMiddleware := middlewares.AuthMiddleware(tokenHelper)
-
-	router.POST("", authMiddleware, reactionController.CreateReact)
-	router.DELETE("/:article_id", authMiddleware, reactionController.DeleteReact)
+	protected := router.Group("/")
+	protected.Use(middlewares.AuthMiddleware(tokenHelper))
+	router.POST("/", reactionController.CreateReact)
+	router.DELETE("/:article_id", reactionController.DeleteReact)
 }

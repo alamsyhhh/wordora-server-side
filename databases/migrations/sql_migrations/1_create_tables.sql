@@ -91,6 +91,20 @@ CREATE TABLE subscriptions (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  subscription_id UUID NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+  midtrans_transaction_id VARCHAR(100) UNIQUE NOT NULL,
+  status VARCHAR(50) CHECK (status IN ('pending', 'settlement', 'deny', 'cancel', 'expire', 'refund')) NOT NULL,
+  payment_type VARCHAR(50),
+  gross_amount INT NOT NULL,
+  transaction_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 -- +migrate Down
 DROP TABLE subscriptions;
 DROP TABLE subscription_plans;
@@ -101,6 +115,7 @@ DROP TABLE categories;
 DROP TABLE profiles;
 DROP TABLE user_otps;
 DROP TABLE users;
+DROP TABLE transactions;
 
 DROP TYPE IF EXISTS role;
 DROP TYPE IF EXISTS gender;
