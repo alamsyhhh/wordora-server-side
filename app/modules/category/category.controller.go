@@ -32,6 +32,9 @@ func (c *CategoryController) CreateCategory(ctx *gin.Context) {
 // @Tags Categories
 // @Accept json
 // @Produce json
+// @Param limit query int false "Number of articles per page" default(10)
+// @Param offset query int false "Number of articles to skip" default(0)
+// @Param name query string false "Search articles by name"
 // @Success 200 {object} dto.CategoryResponse
 // @Router /categories [get]
 // @Security BearerAuth

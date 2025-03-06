@@ -34,6 +34,9 @@ func (c *ArticleController) CreateArticle(ctx *gin.Context) {
 // @Description Retrieve a list of all articles
 // @Tags Articles
 // @Produce json
+// @Param limit query int false "Number of articles per page" default(10)
+// @Param offset query int false "Number of articles to skip" default(0)
+// @Param name query string false "Search articles by name"
 // @Success 200 {array} map[string]interface{} "List of articles"
 // @Router /articles [get]
 func (c *ArticleController) GetAllArticles(ctx *gin.Context) {

@@ -159,6 +159,21 @@ paths:
   /articles:
     get:
       description: Retrieve a list of all articles
+      parameters:
+      - default: 10
+        description: Number of articles per page
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Number of articles to skip
+        in: query
+        name: offset
+        type: integer
+      - description: Search articles by name
+        in: query
+        name: name
+        type: string
       produces:
       - application/json
       responses:
@@ -401,6 +416,21 @@ paths:
       consumes:
       - application/json
       description: Retrieve a list of all categories
+      parameters:
+      - default: 10
+        description: Number of articles per page
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Number of articles to skip
+        in: query
+        name: offset
+        type: integer
+      - description: Search articles by name
+        in: query
+        name: name
+        type: string
       produces:
       - application/json
       responses:

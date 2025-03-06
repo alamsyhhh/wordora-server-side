@@ -3,6 +3,7 @@ package category
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 	"wordora/app/modules/category/dto"
 	"wordora/app/modules/category/model"
@@ -28,24 +29,39 @@ func NewCategoryService(repo CategoryRepository) CategoryService {
 }
 
 func (s *categoryServiceImpl) GetAllCategories(ctx *gin.Context) {
-	categories, err := s.repo.GetAllCategories()
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+	offset, _ := strconv.Atoi(ctx.DefaultQuery("offset", "0"))
+	name := ctx.Query("name")
+
+	categories, total, err := s.repo.GetAllCategories(limit, offset, name)
 	if err != nil {
-		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch categories", nil)
+		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch categories", err.Error())
 		return
 	}
 
-	var responses []dto.CategoryResponse
-	for _, category := range categories {
-		responses = append(responses, dto.CategoryResponse{
-			ID:        category.ID,
-			Name:      category.Name,
-			CreatedAt: category.Created_at,
-			UpdatedAt: category.Updated_at,
-		})
-	}
-
-	common.GenerateSuccessResponseWithData(ctx, "Categories fetched successfully", responses)
+	paginationResponse := common.GeneratePaginationResponse(categories, total, limit, offset)
+	common.GenerateSuccessResponseWithData(ctx, "Categories retrieved successfully", paginationResponse)
 }
+
+// func (s *categoryServiceImpl) GetAllCategories(ctx *gin.Context) {
+// 	categories, err := s.repo.GetAllCategories()
+// 	if err != nil {
+// 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch categories", nil)
+// 		return
+// 	}
+
+// 	var responses []dto.CategoryResponse
+// 	for _, category := range categories {
+// 		responses = append(responses, dto.CategoryResponse{
+// 			ID:        category.ID,
+// 			Name:      category.Name,
+// 			CreatedAt: category.Created_at,
+// 			UpdatedAt: category.Updated_at,
+// 		})
+// 	}
+
+// 	common.GenerateSuccessResponseWithData(ctx, "Categories fetched successfully", responses)
+// }
 
 func (s *categoryServiceImpl) CreateCategory(ctx *gin.Context) {
 	var req dto.CreateCategoryRequest

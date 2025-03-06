@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"wordora/app/modules/article/dto"
 	"wordora/app/modules/article/model"
 	"wordora/app/utils/cloudinary"
@@ -14,7 +15,7 @@ import (
 
 type ArticleService interface {
 	CreateArticle(ctx *gin.Context)
-	GetAllArticles(ctx *gin.Context)
+	GetAllArticles(ctx *gin.Context )
 	GetArticleByID(ctx *gin.Context)
 	UpdateArticle(ctx *gin.Context)
 	DeleteArticle(ctx *gin.Context)
@@ -76,13 +77,28 @@ func (s *articleService) CreateArticle(ctx *gin.Context) {
 }
 
 func (s *articleService) GetAllArticles(ctx *gin.Context) {
-	articles, err := s.articleRepo.GetAllArticles()
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+	offset, _ := strconv.Atoi(ctx.DefaultQuery("offset", "0"))
+	name := ctx.Query("name")
+
+	articles, total, err := s.articleRepo.GetAllArticles(limit, offset, name)
 	if err != nil {
 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch articles", err.Error())
 		return
 	}
-	common.GenerateSuccessResponseWithData(ctx, "Articles retrieved successfully", articles)
+
+	paginationResponse := common.GeneratePaginationResponse(articles, total, limit, offset)
+	common.GenerateSuccessResponseWithData(ctx, "Articles retrieved successfully", paginationResponse)
 }
+
+// func (s *articleService) GetAllArticles(ctx *gin.Context) {
+// 	articles, err := s.articleRepo.GetAllArticles()
+// 	if err != nil {
+// 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch articles", err.Error())
+// 		return
+// 	}
+// 	common.GenerateSuccessResponseWithData(ctx, "Articles retrieved successfully", articles)
+// }
 
 // func (s *articleService) GetArticleByID(ctx *gin.Context) {
 // 	id := ctx.Param("id")
@@ -97,7 +113,6 @@ func (s *articleService) GetAllArticles(ctx *gin.Context) {
 func (s *articleService) GetArticleByID(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	// Ambil userID dari token
 	userID, exists := ctx.Get("sub")
 	if !exists {
 
@@ -105,7 +120,6 @@ func (s *articleService) GetArticleByID(ctx *gin.Context) {
 		return
 	}
 
-	// Konversi userID ke string
 	userIDStr, ok := userID.(string)
 	if !ok {
 		common.GenerateErrorResponse(ctx, http.StatusUnauthorized, "Invalid user ID format", nil)

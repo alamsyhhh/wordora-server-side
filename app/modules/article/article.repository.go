@@ -15,7 +15,7 @@ import (
 
 type ArticleRepository interface {
 	CreateArticle(article *model.Article) (*model.Article, error)
-	GetAllArticles() ([]model.Article, error)
+	GetAllArticles(limit, offset int, search string) ([]model.Article, int, error)
 	// GetArticleByID(id string, userID string) (*ArticleDetailResponse, error)
 	GetDeleteArticleByID(id string) (*model.Article, error)
 	GetArticleByIDWithDetails(articleID, userID string) (*dto.ArticleDetailResponse, error)
@@ -56,15 +56,43 @@ func (r *articleRepository) CreateArticle(article *model.Article) (*model.Articl
 	return &newArticle, nil
 }
 
-func (r *articleRepository) GetAllArticles() ([]model.Article, error) {
+func (r *articleRepository) GetAllArticles(limit, offset int, search string) ([]model.Article, int, error) {
 	var articles []model.Article
-	err := r.db.From("articles").ScanStructs(&articles)
+	var err error
+	query := r.db.From("articles")
+
+	if search != "" {
+		query = query.Where(goqu.Ex{"title": goqu.Op{"ilike": "%" + search + "%"}})
+	}
+
+	totalQuery := query.Select(goqu.COUNT("*"))
+	var total int
+	if _, err = totalQuery.ScanVal(&total); err != nil { 
+		log.Println("Error counting articles:", err)
+		return nil, 0, err
+	}
+
+	query = query.Limit(uint(limit)).Offset(uint(offset))
+
+	err = query.ScanStructs(&articles)
 	if err != nil {
 		log.Println("Error fetching articles:", err)
-		return nil, err
+		return nil, 0, err
 	}
-	return articles, nil
+
+	return articles, total, nil
 }
+
+
+// func (r *articleRepository) GetAllArticles() ([]model.Article, error) {
+// 	var articles []model.Article
+// 	err := r.db.From("articles").ScanStructs(&articles)
+// 	if err != nil {
+// 		log.Println("Error fetching articles:", err)
+// 		return nil, err
+// 	}
+// 	return articles, nil
+// }
 
 func (r *articleRepository) GetDeleteArticleByID(id string) (*model.Article, error) {
 	var article model.Article

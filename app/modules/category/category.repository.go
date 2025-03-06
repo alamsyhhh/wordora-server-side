@@ -11,7 +11,7 @@ import (
 
 type CategoryRepository interface {
 	CreateCategory(category *model.Category) error
-	GetAllCategories() ([]model.Category, error)
+	GetAllCategories(limit, offset int, search string) ([]model.Category, int, error)
 	GetCategoryByID(id string) (*model.Category, error)
 	UpdateCategory(id string, name string) error
 	DeleteCategory(id string) error
@@ -30,10 +30,37 @@ func (r *categoryRepositoryImpl) CreateCategory(category *model.Category) error 
 	return err
 }
 
-func (r *categoryRepositoryImpl) GetAllCategories() ([]model.Category, error) {
+// func (r *categoryRepositoryImpl) GetAllCategories() ([]model.Category, error) {
+// 	var categories []model.Category
+// 	err := r.db.From("categories").ScanStructs(&categories)
+// 	return categories, err
+// }
+
+func (r *categoryRepositoryImpl) GetAllCategories(limit, offset int, search string) ([]model.Category, int, error) {
 	var categories []model.Category
-	err := r.db.From("categories").ScanStructs(&categories)
-	return categories, err
+	var err error
+	query := r.db.From("categories")
+
+	if search != "" {
+		query = query.Where(goqu.Ex{"name": goqu.Op{"ilike": "%" + search + "%"}})
+	}
+
+	totalQuery := query.Select(goqu.COUNT("*"))
+	var total int
+	if _, err = totalQuery.ScanVal(&total); err != nil { 
+		log.Println("Error counting articles:", err)
+		return nil, 0, err
+	}
+
+	query = query.Limit(uint(limit)).Offset(uint(offset))
+
+	err = query.ScanStructs(&categories)
+	if err != nil {
+		log.Println("Error fetching categories:", err)
+		return nil, 0, err
+	}
+
+	return categories, total, nil
 }
 
 func (r *categoryRepositoryImpl) GetCategoryByID(id string) (*model.Category, error) {
