@@ -7,8 +7,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 )
 
-
-
 type OTPRepository struct {
 	db *goqu.Database
 }
@@ -40,4 +38,3 @@ func (r *OTPRepository) DeleteExpiredOTPs() error {
 	_, err := r.db.Delete("user_otps").Where(goqu.C("expired_at").Lt(time.Now())).Executor().Exec()
 	return err
 }
-

@@ -15,7 +15,7 @@ func SetupCommentRoutes(router *gin.RouterGroup, db *sql.DB, tokenHelper *paseto
 	
 	protected := router.Group("/")
 	protected.Use(middlewares.AuthMiddleware(tokenHelper))
-	router.POST("/", commentController.CreateComment)
-	router.PUT("/:id", commentController.UpdateComment)
-	router.DELETE("/:id", commentController.DeleteComment)
+	protected.POST("/", commentController.CreateComment)
+	protected.PUT("/:id", commentController.UpdateComment)
+	protected.DELETE("/:id", commentController.DeleteComment)
 }

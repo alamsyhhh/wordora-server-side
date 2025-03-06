@@ -21,4 +21,5 @@ func SetupAuthRoutes(router *gin.RouterGroup, db *sql.DB) {
 	router.POST("/register", authController.Register)
 	router.POST("/login", authController.Login)
 	router.POST("/verify-otp", authController.VerifyOTP)
+	router.POST("/resend-otp", authController.ResendOTP)
 }

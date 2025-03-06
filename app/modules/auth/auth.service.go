@@ -8,6 +8,7 @@ import (
 	"wordora/app/modules/profiles"
 	profileEnums "wordora/app/modules/profiles/enums"
 	"wordora/app/modules/users"
+	"wordora/app/modules/users/model"
 	"wordora/app/utils/common"
 	"wordora/app/utils/hash"
 	"wordora/app/utils/mail"
@@ -46,7 +47,7 @@ func (s *AuthService) Register(ctx *gin.Context, req dto.RegisterRequest) {
 		return
 	}
 
-	user := users.User{
+	user := model.User{
 		ID:              uuid.GenerateUUID(),
 		Name:            req.Name,
 		Email:           req.Email,
@@ -158,3 +159,44 @@ func (s *AuthService) VerifyOTP(ctx *gin.Context, req dto.VerifyOTPRequest) {
 
 	common.GenerateSuccessResponse(ctx, "OTP verified successfully. Email is now verified.")
 }
+
+func (s *AuthService) ResendOTP(ctx *gin.Context, req dto.ResendOTPRequest) {
+	user, err := s.userRepo.GetUserByEmail(req.Email)
+	if err != nil || user == nil {
+		common.GenerateErrorResponse(ctx, 400, "User not found", nil)
+		return
+	}
+
+	if user.IsEmailVerified {
+		common.GenerateErrorResponse(ctx, 400, "Email already verified", nil)
+		return
+	}
+
+	// Hapus OTP lama sebelum membuat yang baru
+	if err := s.otpRepo.DeleteOTPByUserID(user.ID); err != nil {
+		common.GenerateErrorResponse(ctx, 500, "Failed to delete previous OTP", nil)
+		return
+	}
+
+	otpCode, expirationTime := mail.GenerateOTP()
+
+	newOTP := otp.UserOTP{
+		ID:        uuid.GenerateUUID(),
+		UserID:    user.ID,
+		OTPCode:   otpCode,
+		ExpiredAt: expirationTime,
+	}
+
+	if err := s.otpRepo.CreateOTP(&newOTP); err != nil {
+		common.GenerateErrorResponse(ctx, 500, "Failed to generate new OTP", nil)
+		return
+	}
+
+	if err := mail.SendOTPEmail(user.Email, otpCode); err != nil {
+		common.GenerateErrorResponse(ctx, 500, "Failed to send OTP email", nil)
+		return
+	}
+
+	common.GenerateSuccessResponse(ctx, "OTP resent successfully. Check your email.")
+}
+

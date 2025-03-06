@@ -20,9 +20,9 @@ func (r *ReactionRepository) CreateReaction(reaction *Reaction) error {
 	return err
 }
 
-func (r *ReactionRepository) DeleteReaction(articleID, userID uuid.UUID) error {
+func (r *ReactionRepository) DeleteReaction(reactionID, userID uuid.UUID) error {
 	_, err := r.db.Delete("reactions").
-		Where(goqu.Ex{"article_id": articleID, "user_id": userID}).
+		Where(goqu.Ex{"id": reactionID, "user_id": userID}).
 		Executor().Exec()
 	return err
 }

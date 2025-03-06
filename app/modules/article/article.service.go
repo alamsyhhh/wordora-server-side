@@ -1,6 +1,7 @@
 package article
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"wordora/app/modules/article/dto"
@@ -34,7 +35,6 @@ func (s *articleService) CreateArticle(ctx *gin.Context) {
 		return
 	}
 
-	// Handle file upload
 	var imagePath string
 	file, _, err := ctx.Request.FormFile("image")
 	if err == nil {
@@ -52,7 +52,6 @@ func (s *articleService) CreateArticle(ctx *gin.Context) {
 		imagePath = uploadedURL
 	}
 
-	// Simpan artikel
 	article := &Article{
 		Title:      req.Title,
 		CategoryID: req.CategoryID,
@@ -66,7 +65,6 @@ func (s *articleService) CreateArticle(ctx *gin.Context) {
 		return
 	}
 
-	// Kirim respons sukses
 	common.GenerateSuccessResponseWithData(ctx, "Article created successfully", dto.ArticleResponse{
 		ID:         savedArticle.ID,
 		Title:      savedArticle.Title,
@@ -96,39 +94,83 @@ func (s *articleService) GetArticleByID(ctx *gin.Context) {
 }
 
 func (s *articleService) UpdateArticle(ctx *gin.Context) {
-	id := ctx.Param("id")
-	var req dto.UpdateArticleRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		common.GenerateErrorResponse(ctx, http.StatusBadRequest, "Invalid input", err.Error())
-		return
+    id := ctx.Param("id")
+
+    var req dto.UpdateArticleRequest
+    if err := ctx.ShouldBind(&req); err != nil {
+        common.GenerateErrorResponse(ctx, http.StatusBadRequest, "Invalid input", err.Error())
+        return
+    }
+
+    if req.CategoryID == "" {
+        common.GenerateErrorResponse(ctx, http.StatusBadRequest, "Invalid input", "Category ID is required")
+        return
+    }
+
+	var imagePath string
+	file, _, err := ctx.Request.FormFile("image")
+	if err == nil {
+		imageBytes, err := io.ReadAll(file)
+		if err != nil {
+			common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to read image file", err.Error())
+			return
+		}
+
+		uploadedURL, err := cloudinary.UploadImageToCloudinary(imageBytes)
+		if err != nil {
+			common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to upload image", err.Error())
+			return
+		}
+		imagePath = uploadedURL
 	}
 
-	updatedArticle := &Article{
-		Title:      req.Title,
-		CategoryID: req.CategoryID,
-		Body:       req.Body,
-	}
+    updatedArticle := &Article{
+        Title:      req.Title,
+        CategoryID: req.CategoryID,
+        Body:       req.Body,
+		ImagePath:  imagePath,
+    }
 
-	article, err := s.articleRepo.UpdateArticle(id, updatedArticle)
-	if err != nil {
-		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to update article", err.Error())
-		return
-	}
-	common.GenerateSuccessResponseWithData(ctx, "Article updated successfully", article)
+    article, err := s.articleRepo.UpdateArticle(id, updatedArticle)
+    if err != nil {
+        fmt.Println("Update Error:", err)
+        common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to update article", err.Error())
+        return
+    }
+
+    common.GenerateSuccessResponseWithData(ctx, "Article updated successfully", article)
 }
 
 func (s *articleService) DeleteArticle(ctx *gin.Context) {
 	id := ctx.Param("id")
-	err := s.articleRepo.DeleteArticle(id)
+
+	article, err := s.articleRepo.GetArticleByID(id)
+	if err != nil {
+		common.GenerateErrorResponse(ctx, http.StatusNotFound, "Article not found", err.Error())
+		return
+	}
+
+	err = s.articleRepo.DeleteArticle(id)
 	if err != nil {
 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete article", err.Error())
 		return
 	}
-	common.GenerateSuccessResponseWithData(ctx, "Article deleted successfully", dto.DeleteArticleResponse{Message: "Article deleted successfully"})
+
+	response := dto.ArticleResponse{
+		ID:         article.ID,
+		Title:      article.Title,
+		CategoryID: article.CategoryID,
+		Body:       article.Body,
+		ImagePath:  article.ImagePath,
+	}
+
+	common.GenerateSuccessResponseWithData(ctx, "Article deleted successfully", response)
 }
+
 
 func (s *articleService) GetArticlesByCategory(ctx *gin.Context) {
 	categoryID := ctx.Param("category_id")
+
 	articles, err := s.articleRepo.GetArticlesByCategory(categoryID)
 	if err != nil {
 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch articles by category", err.Error())

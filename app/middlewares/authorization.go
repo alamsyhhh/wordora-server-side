@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"log"
 	"net/http"
 	"strings"
 	"wordora/app/utils/paseto"
@@ -30,6 +31,8 @@ func AuthMiddleware(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		log.Printf("Token Payload: %+v", payload)
+
 
 		userID, ok := payload["sub"].(string)
 		if !ok {
@@ -39,6 +42,8 @@ func AuthMiddleware(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 		}
 
 		c.Set("sub", userID)
+		log.Printf("Token Payload: %+v", payload)
+
 		c.Next()
 	}
 }

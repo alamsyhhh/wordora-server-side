@@ -1,6 +1,7 @@
 package reactions
 
 import (
+	"log"
 	"net/http"
 	"wordora/app/modules/reactions/dto"
 	"wordora/app/utils/common"
@@ -45,6 +46,7 @@ func (s *ReactionService) CreateReact(ctx *gin.Context) {
 
 	err := s.reactionRepo.CreateReaction(reaction)
 	if err != nil {
+		log.Print("error",err)
 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to add reaction", nil)
 		return
 	}
@@ -53,20 +55,24 @@ func (s *ReactionService) CreateReact(ctx *gin.Context) {
 }
 
 func (s *ReactionService) DeleteReact(ctx *gin.Context) {
+
 	userID, exists := ctx.Get("sub")
 	if !exists {
 		common.GenerateErrorResponse(ctx, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
-	articleID, err := uuid.Parse(ctx.Param("article_id"))
+	reactionID, err := uuid.Parse(ctx.Param("reaction_id"))
 	if err != nil {
-		common.GenerateErrorResponse(ctx, http.StatusBadRequest, "Invalid article ID", nil)
+		log.Print("error",err)
+
+		common.GenerateErrorResponse(ctx, http.StatusBadRequest, "Invalid reaction ID", nil)
 		return
 	}
 
-	err = s.reactionRepo.DeleteReaction(articleID, uuid.MustParse(userID.(string)))
+	err = s.reactionRepo.DeleteReaction(reactionID, uuid.MustParse(userID.(string)))
 	if err != nil {
+		log.Print("error",err)
 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to remove reaction", nil)
 		return
 	}

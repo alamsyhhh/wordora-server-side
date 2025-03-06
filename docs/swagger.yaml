@@ -1,5 +1,35 @@
-basePath: /api/v1
+basePath: /v1/api
 definitions:
+  dto.CategoryResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.CreateCategoryRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  dto.CreateCommentRequest:
+    properties:
+      article_id:
+        type: string
+      body:
+        type: string
+      parent_id:
+        type: string
+    required:
+    - article_id
+    - body
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -9,6 +39,39 @@ definitions:
     required:
     - email
     - password
+    type: object
+  dto.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  dto.ProfileResponse:
+    properties:
+      address:
+        type: string
+      full_name:
+        type: string
+      gender:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  dto.ReactionRequest:
+    properties:
+      article_id:
+        type: string
+      type:
+        enum:
+        - like
+        - love
+        - clap
+        - insightful
+        - funny
+        - sad
+        type: string
+    required:
+    - article_id
+    - type
     type: object
   dto.RegisterRequest:
     properties:
@@ -36,30 +99,214 @@ definitions:
     type: object
   dto.RegisterResponse:
     properties:
-      address:
+      created_at:
         type: string
       email:
-        type: string
-      full_name:
-        type: string
-      gender:
         type: string
       id:
         type: string
       name:
         type: string
-      phone_number:
-        type: string
+      profiles:
+        allOf:
+        - $ref: '#/definitions/dto.ProfileResponse'
+        description: |-
+          FullName    string `json:"full_name"`
+          Gender      string `json:"gender"`
+          PhoneNumber string `json:"phone_number"`
+          Address     string `json:"address"`
       role:
         type: string
+    type: object
+  dto.ResendOTPRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  dto.UpdateCategoryRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  dto.UpdateCommentRequest:
+    properties:
+      body:
+        type: string
+    required:
+    - body
+    type: object
+  dto.VerifyOTPRequest:
+    properties:
+      email:
+        type: string
+      otp:
+        type: string
+    required:
+    - email
+    - otp
     type: object
 host: localhost:8080
 info:
   contact: {}
   description: This is a sample server for Wordora.
-  title: Wordora API
+  title: Wordora Blogs API
   version: "1.0"
 paths:
+  /articles:
+    get:
+      description: Retrieve a list of all articles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of articles
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+      summary: Get all articles
+      tags:
+      - Articles
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new article with title, content, category, and image
+      parameters:
+      - description: Article Title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Category ID
+        in: formData
+        name: category_id
+        required: true
+        type: string
+      - description: Article Body
+        in: formData
+        name: body
+        required: true
+        type: string
+      - description: Article Image
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Article created successfully
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new article
+      tags:
+      - Articles
+  /articles/{id}:
+    delete:
+      description: Delete an article by its ID
+      parameters:
+      - description: Article ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Article deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete an article
+      tags:
+      - Articles
+    get:
+      description: Retrieve a single article by its ID
+      parameters:
+      - description: Article ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Article retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get an article by ID
+      tags:
+      - Articles
+    put:
+      consumes:
+      - multipart/form-data
+      description: Update article details like title, content, category, and image
+      parameters:
+      - description: Article ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Article Title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Category ID
+        in: formData
+        name: category_id
+        required: true
+        type: string
+      - description: Article Body
+        in: formData
+        name: body
+        required: true
+        type: string
+      - description: Article Image
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Article updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update an article
+      tags:
+      - Articles
+  /articles/category/{category_id}:
+    get:
+      description: Retrieve a list of articles filtered by category
+      parameters:
+      - description: Category ID
+        in: path
+        name: category_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get articles by category
+      tags:
+      - Articles
   /auth/login:
     post:
       consumes:
@@ -78,7 +325,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.RegisterResponse'
+            $ref: '#/definitions/dto.LoginResponse'
       summary: Login a user
       tags:
       - Auth
@@ -104,4 +351,301 @@ paths:
       summary: Register a new user
       tags:
       - Auth
+  /auth/resend-otp:
+    post:
+      consumes:
+      - application/json
+      description: Request a new OTP code for verification
+      parameters:
+      - description: Resend OTP Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResendOTPRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Resend OTP code
+      tags:
+      - Auth
+  /auth/verify-otp:
+    post:
+      consumes:
+      - application/json
+      description: Verify a user’s OTP code for authentication
+      parameters:
+      - description: Verify OTP Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VerifyOTPRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Verify an OTP code
+      tags:
+      - Auth
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CategoryResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all categories
+      tags:
+      - Categories
+    post:
+      consumes:
+      - application/json
+      description: Add a new category to the system
+      parameters:
+      - description: Create Category Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CategoryResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new category
+      tags:
+      - Categories
+  /categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a category by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CategoryResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a category
+      tags:
+      - Categories
+    put:
+      consumes:
+      - application/json
+      description: Update an existing category by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Category Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CategoryResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a category
+      tags:
+      - Categories
+  /comments:
+    post:
+      consumes:
+      - application/json
+      description: Add a new comment to a post or article
+      parameters:
+      - description: Comment Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comment created successfully
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new comment
+      tags:
+      - Comments
+  /comments/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a comment by ID
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comment deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a comment
+      tags:
+      - Comments
+    put:
+      consumes:
+      - application/json
+      description: Update an existing comment by ID
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Comment Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comment updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a comment
+      tags:
+      - Comments
+  /reactions:
+    post:
+      consumes:
+      - application/json
+      description: Add a reaction (like, love, etc.) to a post or comment
+      parameters:
+      - description: Reaction Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ReactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reaction added successfully
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add a reaction
+      tags:
+      - Reactions
+  /reactions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a reaction from a post or comment
+      parameters:
+      - description: Reaction ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reaction Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ReactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reaction removed successfully
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove a reaction
+      tags:
+      - Reactions
+  /users/{id}/role:
+    put:
+      consumes:
+      - application/json
+      description: Update the role of a specific user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Update user role
+      tags:
+      - Users
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of the authenticated user
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get current authenticated user
+      tags:
+      - Users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

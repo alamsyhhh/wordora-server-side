@@ -27,7 +27,7 @@ func NewAuthController(authService *AuthService) *AuthController {
 func (c *AuthController) Register(ctx *gin.Context) {
 	var req dto.RegisterRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	c.authService.Register(ctx, req)
@@ -40,17 +40,25 @@ func (c *AuthController) Register(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body dto.LoginRequest true "Login Request"
-// @Success 200 {object} dto.RegisterResponse
+// @Success 200 {object} dto.LoginResponse
 // @Router /auth/login [post]
 func (c *AuthController) Login(ctx *gin.Context) {
 	var req dto.LoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	c.authService.Login(ctx, req)
 }
 
+// VerifyOTP godoc
+// @Summary Verify an OTP code
+// @Description Verify a user’s OTP code for authentication
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.VerifyOTPRequest true "Verify OTP Request"
+// @Router /auth/verify-otp [post]
 func (c *AuthController) VerifyOTP(ctx *gin.Context) {
 	var req dto.VerifyOTPRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -58,4 +66,21 @@ func (c *AuthController) VerifyOTP(ctx *gin.Context) {
 		return
 	}
 	c.authService.VerifyOTP(ctx, req)
+}
+
+// ResendOTP godoc
+// @Summary Resend OTP code
+// @Description Request a new OTP code for verification
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.ResendOTPRequest true "Resend OTP Request"
+// @Router /auth/resend-otp [post]
+func (c *AuthController) ResendOTP(ctx *gin.Context) {
+	var req dto.ResendOTPRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.authService.ResendOTP(ctx, req)
 }

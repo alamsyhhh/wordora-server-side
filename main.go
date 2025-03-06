@@ -19,7 +19,10 @@ import (
 // @version 1.0
 // @description This is a sample server for Wordora.
 // @host localhost:8080
-// @BasePath /api/v1
+// @BasePath /v1/api
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	db, err := databases.ConnectDB()
 	if err != nil {

@@ -3,6 +3,7 @@ package article
 import (
 	"database/sql"
 	"log"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
@@ -30,7 +31,6 @@ func NewArticleRepository(db *sql.DB) ArticleRepository {
 func (r *articleRepository) CreateArticle(article *Article) (*Article, error) {
 	article.ID = uuid.NewString()
 
-	// Generate SQL query
 	query, args, err := goqu.Insert("articles").
 		Rows(article).
 		Returning("id", "title", "category_id", "body", "image_path").
@@ -40,7 +40,6 @@ func (r *articleRepository) CreateArticle(article *Article) (*Article, error) {
 		return nil, err
 	}
 
-	// Eksekusi query menggunakan `sql.DB`
 	var newArticle Article
 	err = r.db.QueryRow(query, args...).Scan(&newArticle.ID, &newArticle.Title, &newArticle.CategoryID, &newArticle.Body, &newArticle.ImagePath)
 	if err != nil {
@@ -81,6 +80,7 @@ func (r *articleRepository) UpdateArticle(id string, updatedArticle *Article) (*
 			"category_id": updatedArticle.CategoryID,
 			"body":        updatedArticle.Body,
 			"image_path":  updatedArticle.ImagePath,
+			"updated_at":  time.Now(),
 		}).
 		Where(goqu.Ex{"id": id}).
 		Returning("*").
@@ -90,7 +90,15 @@ func (r *articleRepository) UpdateArticle(id string, updatedArticle *Article) (*
 	}
 
 	var article Article
-	err = r.db.QueryRow(query, args...).Scan(&article.ID, &article.Title, &article.CategoryID, &article.Body, &article.ImagePath)
+	err = r.db.QueryRow(query, args...).Scan(
+		&article.ID,
+		&article.Title,
+		&article.CategoryID,
+		&article.Body,
+		&article.ImagePath,
+		&article.CreatedAt,
+		&article.UpdatedAt,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +112,8 @@ func (r *articleRepository) DeleteArticle(id string) error {
 
 func (r *articleRepository) GetArticlesByCategory(categoryID string) ([]Article, error) {
 	var articles []Article
+
+	log.Println("Executing query with category_id:", categoryID)
 	err := r.db.From("articles").Where(goqu.Ex{"category_id": categoryID}).ScanStructs(&articles)
 	if err != nil {
 		log.Println("Error fetching articles by category:", err)

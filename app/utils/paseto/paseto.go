@@ -3,7 +3,7 @@ package paseto
 import (
 	"os"
 	"time"
-	"wordora/app/modules/users"
+	"wordora/app/modules/users/model"
 
 	"github.com/aead/chacha20poly1305"
 	"github.com/o1egl/paseto"
@@ -24,7 +24,7 @@ func NewTokenHelper() *TokenHelper {
 	}
 }
 
-func (t *TokenHelper) GenerateToken(user *users.User) (string, error) {
+func (t *TokenHelper) GenerateToken(user *model.User) (string, error) {
 	now := time.Now()
 	expiration := now.Add(24 * time.Hour)
 	token := paseto.NewV2()

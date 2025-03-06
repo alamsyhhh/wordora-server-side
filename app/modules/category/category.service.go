@@ -26,29 +26,6 @@ func NewCategoryService(repo CategoryRepository) CategoryService {
 	return &categoryServiceImpl{repo: repo}
 }
 
-func (s *categoryServiceImpl) CreateCategory(ctx *gin.Context) {
-	var req dto.CreateCategoryRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		common.GenerateErrorResponse(ctx, http.StatusBadRequest, err.Error(), nil)
-		return
-	}
-
-	category := Category{
-		ID:         uuid.New().String(),
-		Name:       req.Name,
-		Created_at: time.Now(),
-		Updated_at: time.Now(),
-	}
-
-	if err := s.repo.CreateCategory(&category); err != nil {
-		log.Printf("Error inserting category: %v", err)
-		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to create category", nil)
-		return
-	}
-
-	common.GenerateSuccessResponseWithData(ctx, "Category created successfully", category)
-}
-
 func (s *categoryServiceImpl) GetAllCategories(ctx *gin.Context) {
 	categories, err := s.repo.GetAllCategories()
 	if err != nil {
@@ -69,6 +46,36 @@ func (s *categoryServiceImpl) GetAllCategories(ctx *gin.Context) {
 	common.GenerateSuccessResponseWithData(ctx, "Categories fetched successfully", responses)
 }
 
+func (s *categoryServiceImpl) CreateCategory(ctx *gin.Context) {
+	var req dto.CreateCategoryRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		common.GenerateErrorResponse(ctx, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	category := Category{
+		ID:         uuid.New().String(),
+		Name:       req.Name,
+		Created_at: time.Now(),
+		Updated_at: time.Now(),
+	}
+
+	if err := s.repo.CreateCategory(&category); err != nil {
+		log.Printf("Error inserting category: %v", err)
+		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to create category", nil)
+		return
+	}
+
+	response := dto.CategoryResponse{
+		ID:        category.ID,
+		Name:      category.Name,
+		CreatedAt: category.Created_at,
+		UpdatedAt: category.Updated_at,
+	}
+
+	common.GenerateSuccessResponseWithData(ctx, "Category created successfully", response)
+}
+
 func (s *categoryServiceImpl) UpdateCategory(ctx *gin.Context) {
 	id := ctx.Param("id")
 	var req dto.UpdateCategoryRequest
@@ -77,20 +84,52 @@ func (s *categoryServiceImpl) UpdateCategory(ctx *gin.Context) {
 		return
 	}
 
+	category, err := s.repo.GetCategoryByID(id)
+	if err != nil {
+		common.GenerateErrorResponse(ctx, http.StatusNotFound, "Category not found", nil)
+		return
+	}
+
+	category.Name = req.Name
+	category.Updated_at = time.Now()
+
 	if err := s.repo.UpdateCategory(id, req.Name); err != nil {
 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to update category", nil)
 		return
 	}
 
-	common.GenerateSuccessResponse(ctx, "Category updated successfully")
+	response := dto.CategoryResponse{
+		ID:        category.ID,
+		Name:      category.Name,
+		CreatedAt: category.Created_at,
+		UpdatedAt: category.Updated_at,
+	}
+
+	common.GenerateSuccessResponseWithData(ctx, "Category updated successfully", response)
 }
 
 func (s *categoryServiceImpl) DeleteCategory(ctx *gin.Context) {
 	id := ctx.Param("id")
+	log.Println("Deleting category with ID:", id)
+
+	category, err := s.repo.GetCategoryByID(id)
+	if err != nil {
+		common.GenerateErrorResponse(ctx, http.StatusNotFound, "Category not found", nil)
+		return
+	}
+
 	if err := s.repo.DeleteCategory(id); err != nil {
 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete category", nil)
 		return
 	}
 
-	common.GenerateSuccessResponse(ctx, "Category deleted successfully")
+	response := dto.CategoryResponse{
+		ID:        category.ID,
+		Name:      category.Name,
+		CreatedAt: category.Created_at,
+		UpdatedAt: category.Updated_at,
+	}
+
+	common.GenerateSuccessResponseWithData(ctx, "Category deleted successfully", response)
 }
+

@@ -2,6 +2,8 @@ package category
 
 import (
 	"database/sql"
+	"errors"
+	"log"
 
 	"github.com/doug-martin/goqu/v9"
 )
@@ -9,6 +11,7 @@ import (
 type CategoryRepository interface {
 	CreateCategory(category *Category) error
 	GetAllCategories() ([]Category, error)
+	GetCategoryByID(id string) (*Category, error)
 	UpdateCategory(id string, name string) error
 	DeleteCategory(id string) error
 }
@@ -32,6 +35,18 @@ func (r *categoryRepositoryImpl) GetAllCategories() ([]Category, error) {
 	return categories, err
 }
 
+func (r *categoryRepositoryImpl) GetCategoryByID(id string) (*Category, error) {
+	var category Category
+	found, err := r.db.From("categories").Where(goqu.Ex{"id": id}).ScanStruct(&category)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, errors.New("category not found")
+	}
+	return &category, nil
+}
+
 func (r *categoryRepositoryImpl) UpdateCategory(id string, name string) error {
 	_, err := r.db.Update("categories").
 		Set(goqu.Record{"name": name, "updated_at": goqu.L("CURRENT_TIMESTAMP")}).
@@ -40,6 +55,7 @@ func (r *categoryRepositoryImpl) UpdateCategory(id string, name string) error {
 }
 
 func (r *categoryRepositoryImpl) DeleteCategory(id string) error {
+	log.Println("Executing DELETE query for category ID:", id)
 	_, err := r.db.Delete("categories").Where(goqu.Ex{"id": id}).Executor().Exec()
 	return err
 }
