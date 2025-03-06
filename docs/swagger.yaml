@@ -247,6 +247,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - BearerAuth: []
       summary: Get an article by ID
       tags:
       - Articles
@@ -303,7 +305,14 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: List of articles in the category
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
       summary: Get articles by category
       tags:
       - Articles
@@ -592,12 +601,6 @@ paths:
         name: id
         required: true
         type: string
-      - description: Reaction Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.ReactionRequest'
       produces:
       - application/json
       responses:

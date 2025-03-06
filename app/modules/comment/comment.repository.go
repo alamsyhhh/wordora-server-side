@@ -40,21 +40,13 @@ func (r *CommentRepository) UpdateComment(id string, body string) error {
 	return err
 }
 
-// func (r *CommentRepository) DeleteComment(id string) error {
-// 	query, _, _ := goqu.Delete("comments").Where(goqu.C("id").Eq(id)).ToSQL()
-// 	_, err := r.db.Exec(query)
-// 	return err
-// }
-
 func (r *CommentRepository) DeleteCommentWithReplies(id string) error {
-	// Hapus semua komentar yang memiliki parent_id = id (reply)
 	queryReplies, _, _ := goqu.Delete("comments").Where(goqu.C("parent_id").Eq(id)).ToSQL()
 	_, err := r.db.Exec(queryReplies)
 	if err != nil {
 		return err
 	}
 
-	// Hapus komentar utama
 	query, _, _ := goqu.Delete("comments").Where(goqu.C("id").Eq(id)).ToSQL()
 	_, err = r.db.Exec(query)
 	return err

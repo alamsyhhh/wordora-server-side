@@ -48,6 +48,7 @@ func (c *ArticleController) GetAllArticles(ctx *gin.Context) {
 // @Param id path string true "Article ID"
 // @Success 200 {object} map[string]interface{} "Article retrieved successfully"
 // @Router /articles/{id} [get]
+// @Security BearerAuth
 func (c *ArticleController) GetArticleByID(ctx *gin.Context) {
 	c.articleService.GetArticleByID(ctx)
 }

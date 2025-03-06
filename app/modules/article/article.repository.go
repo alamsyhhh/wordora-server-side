@@ -4,18 +4,24 @@ import (
 	"database/sql"
 	"log"
 	"time"
+	"wordora/app/modules/article/dto"
+	"wordora/app/modules/article/model"
+	"wordora/app/modules/comment"
+	"wordora/app/modules/reactions"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 )
 
 type ArticleRepository interface {
-	CreateArticle(article *Article) (*Article, error)
-	GetAllArticles() ([]Article, error)
-	GetArticleByID(id string) (*Article, error)
-	UpdateArticle(id string, updatedArticle *Article) (*Article, error)
+	CreateArticle(article *model.Article) (*model.Article, error)
+	GetAllArticles() ([]model.Article, error)
+	// GetArticleByID(id string, userID string) (*ArticleDetailResponse, error)
+	GetDeleteArticleByID(id string) (*model.Article, error)
+	GetArticleByIDWithDetails(articleID, userID string) (*dto.ArticleDetailResponse, error)
+	UpdateArticle(id string, updatedArticle *model.Article) (*model.Article, error)
 	DeleteArticle(id string) error
-	GetArticlesByCategory(categoryID string) ([]Article, error)
+	GetArticlesByCategory(categoryID string) ([]model.Article, error)
 }
 
 type articleRepository struct {
@@ -28,7 +34,7 @@ func NewArticleRepository(db *sql.DB) ArticleRepository {
 	}
 }
 
-func (r *articleRepository) CreateArticle(article *Article) (*Article, error) {
+func (r *articleRepository) CreateArticle(article *model.Article) (*model.Article, error) {
 	article.ID = uuid.NewString()
 
 	query, args, err := goqu.Insert("articles").
@@ -40,7 +46,7 @@ func (r *articleRepository) CreateArticle(article *Article) (*Article, error) {
 		return nil, err
 	}
 
-	var newArticle Article
+	var newArticle model.Article
 	err = r.db.QueryRow(query, args...).Scan(&newArticle.ID, &newArticle.Title, &newArticle.CategoryID, &newArticle.Body, &newArticle.ImagePath)
 	if err != nil {
 		log.Println("Error executing query:", err)
@@ -50,8 +56,8 @@ func (r *articleRepository) CreateArticle(article *Article) (*Article, error) {
 	return &newArticle, nil
 }
 
-func (r *articleRepository) GetAllArticles() ([]Article, error) {
-	var articles []Article
+func (r *articleRepository) GetAllArticles() ([]model.Article, error) {
+	var articles []model.Article
 	err := r.db.From("articles").ScanStructs(&articles)
 	if err != nil {
 		log.Println("Error fetching articles:", err)
@@ -60,8 +66,8 @@ func (r *articleRepository) GetAllArticles() ([]Article, error) {
 	return articles, nil
 }
 
-func (r *articleRepository) GetArticleByID(id string) (*Article, error) {
-	var article Article
+func (r *articleRepository) GetDeleteArticleByID(id string) (*model.Article, error) {
+	var article model.Article
 	found, err := r.db.From("articles").Where(goqu.Ex{"id": id}).ScanStruct(&article)
 	if err != nil {
 		log.Println("Error fetching article:", err)
@@ -73,7 +79,54 @@ func (r *articleRepository) GetArticleByID(id string) (*Article, error) {
 	return &article, nil
 }
 
-func (r *articleRepository) UpdateArticle(id string, updatedArticle *Article) (*Article, error) {
+func (r *articleRepository) GetArticleByIDWithDetails(articleID, userID string) (*dto.ArticleDetailResponse, error) {
+	var article model.Article
+	found, err := r.db.From("articles").
+		Select("id", "title", "category_id", "body", "image_path", "created_at", "updated_at").
+		Where(goqu.Ex{"id": articleID}).
+		ScanStruct(&article)
+	if err != nil {
+		log.Println("Error fetching article:", err)
+		return nil, err
+	}
+	if !found {
+		return nil, sql.ErrNoRows
+	}
+
+	// Ambil semua komentar untuk artikel ini
+	var comments []comment.Comment
+	err = r.db.From("comments").
+		Select("id", "article_id", "user_id", "parent_id", "body", "created_at", "updated_at").
+		Where(goqu.Ex{"article_id": articleID}).
+		ScanStructs(&comments)
+	if err != nil {
+		log.Println("Error fetching comments:", err)
+		return nil, err
+	}
+
+	// Ambil semua reaksi dari user yang login
+	var reactions []reactions.Reaction
+	err = r.db.From("reactions").
+		Select("id", "article_id", "user_id", "type", "created_at", "updated_at").
+		Where(goqu.Ex{"article_id": articleID, "user_id": userID}).
+		ScanStructs(&reactions)
+	if err != nil {
+		log.Println("Error fetching reactions:", err)
+		return nil, err
+	}
+
+	// Gabungkan data ke dalam response
+	response := &dto.ArticleDetailResponse{
+		Article:   article,
+		Comments:  comments,
+		Reactions: reactions,
+	}
+
+	return response, nil
+}
+
+
+func (r *articleRepository) UpdateArticle(id string, updatedArticle *model.Article) (*model.Article, error) {
 	query, args, err := goqu.Update("articles").
 		Set(goqu.Record{
 			"title":       updatedArticle.Title,
@@ -89,7 +142,7 @@ func (r *articleRepository) UpdateArticle(id string, updatedArticle *Article) (*
 		return nil, err
 	}
 
-	var article Article
+	var article model.Article
 	err = r.db.QueryRow(query, args...).Scan(
 		&article.ID,
 		&article.Title,
@@ -110,8 +163,8 @@ func (r *articleRepository) DeleteArticle(id string) error {
 	return err
 }
 
-func (r *articleRepository) GetArticlesByCategory(categoryID string) ([]Article, error) {
-	var articles []Article
+func (r *articleRepository) GetArticlesByCategory(categoryID string) ([]model.Article, error) {
+	var articles []model.Article
 
 	log.Println("Executing query with category_id:", categoryID)
 	err := r.db.From("articles").Where(goqu.Ex{"category_id": categoryID}).ScanStructs(&articles)

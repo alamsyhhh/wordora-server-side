@@ -75,30 +75,6 @@ func (s *CommentService) UpdateComment(ctx *gin.Context) {
 	common.GenerateSuccessResponse(ctx, "Comment updated successfully")
 }
 
-// func (s *CommentService) DeleteComment(ctx *gin.Context) {
-// 	userID, _ := ctx.Get("sub")
-// 	id := ctx.Param("id")
-
-// 	comment, err := s.repo.GetCommentByID(id)
-// 	if err != nil {
-// 		common.GenerateErrorResponse(ctx, http.StatusNotFound, "Comment not found", nil)
-// 		return
-// 	}
-
-// 	if comment.UserID != userID.(string) {
-// 		common.GenerateErrorResponse(ctx, http.StatusForbidden, "Unauthorized to delete this comment", nil)
-// 		return
-// 	}
-
-// 	err = s.repo.DeleteComment(id)
-// 	if err != nil {
-// 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, err.Error(), nil)
-// 		return
-// 	}
-
-// 	common.GenerateSuccessResponse(ctx, "Comment deleted successfully")
-// }
-
 func (s *CommentService) DeleteComment(ctx *gin.Context) {
 	userID, exists := ctx.Get("sub")
 	if !exists {
@@ -108,14 +84,12 @@ func (s *CommentService) DeleteComment(ctx *gin.Context) {
 
 	id := ctx.Param("id")
 
-	// Ambil data komentar sebelum dihapus
 	comment, err := s.repo.GetCommentByID(id)
 	if err != nil {
 		common.GenerateErrorResponse(ctx, http.StatusNotFound, "Comment not found", nil)
 		return
 	}
 
-	// Pastikan hanya pemilik komentar yang bisa menghapus
 	userIDStr, ok := userID.(string)
 	if !ok {
 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Invalid user ID", nil)
@@ -126,13 +100,11 @@ func (s *CommentService) DeleteComment(ctx *gin.Context) {
 		return
 	}
 
-	// Hapus komentar dan semua komentar yang memiliki parent_id = id
 	err = s.repo.DeleteCommentWithReplies(id)
 	if err != nil {
 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
 
-	// Kirim respons dengan data komentar yang telah dihapus
 	common.GenerateSuccessResponseWithData(ctx, "Comment deleted successfully", comment)
 }

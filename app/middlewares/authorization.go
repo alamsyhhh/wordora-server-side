@@ -33,7 +33,6 @@ func AuthMiddleware(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 		}
 		log.Printf("Token Payload: %+v", payload)
 
-
 		userID, ok := payload["sub"].(string)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token payload"})

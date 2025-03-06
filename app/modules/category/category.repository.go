@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"wordora/app/modules/category/model"
 
 	"github.com/doug-martin/goqu/v9"
 )
 
 type CategoryRepository interface {
-	CreateCategory(category *Category) error
-	GetAllCategories() ([]Category, error)
-	GetCategoryByID(id string) (*Category, error)
+	CreateCategory(category *model.Category) error
+	GetAllCategories() ([]model.Category, error)
+	GetCategoryByID(id string) (*model.Category, error)
 	UpdateCategory(id string, name string) error
 	DeleteCategory(id string) error
 }
@@ -24,19 +25,19 @@ func NewCategoryRepository(db *sql.DB) CategoryRepository {
 	return &categoryRepositoryImpl{db: goqu.New("postgres", db)}
 }
 
-func (r *categoryRepositoryImpl) CreateCategory(category *Category) error {
+func (r *categoryRepositoryImpl) CreateCategory(category *model.Category) error {
 	_, err := r.db.Insert("categories").Rows(category).Executor().Exec()
 	return err
 }
 
-func (r *categoryRepositoryImpl) GetAllCategories() ([]Category, error) {
-	var categories []Category
+func (r *categoryRepositoryImpl) GetAllCategories() ([]model.Category, error) {
+	var categories []model.Category
 	err := r.db.From("categories").ScanStructs(&categories)
 	return categories, err
 }
 
-func (r *categoryRepositoryImpl) GetCategoryByID(id string) (*Category, error) {
-	var category Category
+func (r *categoryRepositoryImpl) GetCategoryByID(id string) (*model.Category, error) {
+	var category model.Category
 	found, err := r.db.From("categories").Where(goqu.Ex{"id": id}).ScanStruct(&category)
 	if err != nil {
 		return nil, err

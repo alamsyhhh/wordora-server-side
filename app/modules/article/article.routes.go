@@ -15,13 +15,16 @@ func SetupArticleRoutes(router *gin.RouterGroup, db *sql.DB, tokenHelper *paseto
 	articleController := NewArticleController(articleService)
 
 	router.GET("/", articleController.GetAllArticles)
-	router.GET("/:id", articleController.GetArticleByID)
 	router.GET("/category/:category_id", articleController.GetArticlesByCategory)
 
 	protected := router.Group("/")
-	protected.Use(middlewares.AdminOnly(tokenHelper))
-	router.POST("/", articleController.CreateArticle)
-	router.PUT("/:id", articleController.UpdateArticle)
-	router.DELETE("/:id", articleController.DeleteArticle)
+	protected.Use(middlewares.AuthMiddleware(tokenHelper))
+	protected.GET("/:id", articleController.GetArticleByID)
+
+	Adminprotected := router.Group("/")
+	Adminprotected.Use(middlewares.AdminOnly(tokenHelper))
+	Adminprotected.POST("/", articleController.CreateArticle)
+	Adminprotected.PUT("/:id", articleController.UpdateArticle)
+	Adminprotected.DELETE("/:id", articleController.DeleteArticle)
 }
 

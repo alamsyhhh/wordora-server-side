@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"wordora/app/modules/article/dto"
+	"wordora/app/modules/article/model"
 	"wordora/app/utils/cloudinary"
 	"wordora/app/utils/common"
 
@@ -52,7 +53,7 @@ func (s *articleService) CreateArticle(ctx *gin.Context) {
 		imagePath = uploadedURL
 	}
 
-	article := &Article{
+	article := &model.Article{
 		Title:      req.Title,
 		CategoryID: req.CategoryID,
 		Body:       req.Body,
@@ -83,14 +84,41 @@ func (s *articleService) GetAllArticles(ctx *gin.Context) {
 	common.GenerateSuccessResponseWithData(ctx, "Articles retrieved successfully", articles)
 }
 
+// func (s *articleService) GetArticleByID(ctx *gin.Context) {
+// 	id := ctx.Param("id")
+// 	article, err := s.articleRepo.GetArticleByID(id)
+// 	if err != nil {
+// 		common.GenerateErrorResponse(ctx, http.StatusNotFound, "Article not found", err.Error())
+// 		return
+// 	}
+// 	common.GenerateSuccessResponseWithData(ctx, "Article retrieved successfully", article)
+// }
+
 func (s *articleService) GetArticleByID(ctx *gin.Context) {
 	id := ctx.Param("id")
-	article, err := s.articleRepo.GetArticleByID(id)
+
+	// Ambil userID dari token
+	userID, exists := ctx.Get("sub")
+	if !exists {
+
+		common.GenerateErrorResponse(ctx, http.StatusUnauthorized, "User ID not found in token", nil)
+		return
+	}
+
+	// Konversi userID ke string
+	userIDStr, ok := userID.(string)
+	if !ok {
+		common.GenerateErrorResponse(ctx, http.StatusUnauthorized, "Invalid user ID format", nil)
+		return
+	}
+
+	articleDetail, err := s.articleRepo.GetArticleByIDWithDetails(id, userIDStr)
 	if err != nil {
 		common.GenerateErrorResponse(ctx, http.StatusNotFound, "Article not found", err.Error())
 		return
 	}
-	common.GenerateSuccessResponseWithData(ctx, "Article retrieved successfully", article)
+
+	common.GenerateSuccessResponseWithData(ctx, "Article retrieved successfully", articleDetail)
 }
 
 func (s *articleService) UpdateArticle(ctx *gin.Context) {
@@ -124,7 +152,7 @@ func (s *articleService) UpdateArticle(ctx *gin.Context) {
 		imagePath = uploadedURL
 	}
 
-    updatedArticle := &Article{
+    updatedArticle := &model.Article{
         Title:      req.Title,
         CategoryID: req.CategoryID,
         Body:       req.Body,
@@ -144,7 +172,7 @@ func (s *articleService) UpdateArticle(ctx *gin.Context) {
 func (s *articleService) DeleteArticle(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	article, err := s.articleRepo.GetArticleByID(id)
+	article, err := s.articleRepo.GetDeleteArticleByID(id)
 	if err != nil {
 		common.GenerateErrorResponse(ctx, http.StatusNotFound, "Article not found", err.Error())
 		return

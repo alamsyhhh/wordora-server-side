@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 	"wordora/app/modules/category/dto"
+	"wordora/app/modules/category/model"
 	"wordora/app/utils/common"
 
 	"github.com/gin-gonic/gin"
@@ -53,7 +54,7 @@ func (s *categoryServiceImpl) CreateCategory(ctx *gin.Context) {
 		return
 	}
 
-	category := Category{
+	category := model.Category{
 		ID:         uuid.New().String(),
 		Name:       req.Name,
 		Created_at: time.Now(),
