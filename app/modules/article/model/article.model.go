@@ -7,6 +7,7 @@ import (
 type Article struct {
 	ID         string       `db:"id"`
 	Title      string       `db:"title"`
+	Slug       string    `db:"slug"`
 	CategoryID string       `db:"category_id"`
 	Body       string       `db:"body"`
 	ImagePath  string       `db:"image_path"`

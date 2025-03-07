@@ -22,7 +22,7 @@ func NewArticleController(articleService ArticleService) *ArticleController {
 // @Param category_id formData string true "Category ID"
 // @Param body formData string true "Article Body"
 // @Param image formData file false "Article Image"
-// @Success 200 {object} map[string]interface{} "Article created successfully"
+// @Success 200 {object} dto.ArticleResponse
 // @Router /articles [post]
 // @Security BearerAuth
 func (c *ArticleController) CreateArticle(ctx *gin.Context) {

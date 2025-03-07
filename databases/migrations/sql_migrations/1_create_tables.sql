@@ -9,7 +9,6 @@ CREATE TABLE users (
   is_email_verified BOOLEAN DEFAULT FALSE,
   password VARCHAR(255) NOT NULL,
   role role NOT NULL,
-  is_ad_free BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -45,6 +44,7 @@ CREATE TABLE categories (
 CREATE TABLE articles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title VARCHAR(30) NOT NULL,
+  slug VARCHAR(50) UNIQUE NOT NULL,
   category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
   body TEXT NOT NULL,
   image_path VARCHAR(255),
@@ -71,43 +71,8 @@ CREATE TABLE comments (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE subscription_plans (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(50) NOT NULL,
-  duration_months INT NOT NULL,
-  price INT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE subscriptions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  plan_id UUID NOT NULL REFERENCES subscription_plans(id) ON DELETE CASCADE,
-  start_date TIMESTAMP NOT NULL,
-  end_date TIMESTAMP NOT NULL,
-  is_active BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE transactions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  subscription_id UUID NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
-  midtrans_transaction_id VARCHAR(100) UNIQUE NOT NULL,
-  status VARCHAR(50) CHECK (status IN ('pending', 'settlement', 'deny', 'cancel', 'expire', 'refund')) NOT NULL,
-  payment_type VARCHAR(50),
-  gross_amount INT NOT NULL,
-  transaction_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 
 -- +migrate Down
-DROP TABLE subscriptions;
-DROP TABLE subscription_plans;
 DROP TABLE comments;
 DROP TABLE reactions;
 DROP TABLE articles;
@@ -115,7 +80,6 @@ DROP TABLE categories;
 DROP TABLE profiles;
 DROP TABLE user_otps;
 DROP TABLE users;
-DROP TABLE transactions;
 
 DROP TYPE IF EXISTS role;
 DROP TYPE IF EXISTS gender;

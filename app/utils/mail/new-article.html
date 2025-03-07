@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>New Article Published</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 600px;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        margin: auto;
+        text-align: center;
+      }
+      .header {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+      }
+      .content {
+        font-size: 16px;
+        color: #555;
+        text-align: left;
+        line-height: 1.6;
+        margin-top: 15px;
+      }
+      .cta-button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #13db45;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 5px;
+      }
+      .cta-button:hover {
+        background-color: #20bd2d;
+      }
+      .footer {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">📢 New Article: {{.Title}}</div>
+      <div class="content">
+        <p>{{.Body}}</p>
+      </div>
+      <a href="{{.URL}}" class="cta-button">Read Full Article</a>
+      <div class="footer">&copy; 2025 Your Website. All rights reserved.</div>
+    </div>
+  </body>
+</html>

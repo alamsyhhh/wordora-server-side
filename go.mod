@@ -11,7 +11,6 @@ require (
 	github.com/google/uuid v1.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
-	github.com/midtrans/midtrans-go v1.3.8
 	github.com/o1egl/paseto v1.0.0
 	github.com/rubenv/sql-migrate v1.7.1
 	github.com/swaggo/files v1.0.1

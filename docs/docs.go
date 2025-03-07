@@ -108,10 +108,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Article created successfully",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.ArticleResponse"
                         }
                     }
                 }
@@ -825,20 +824,53 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.ArticleResponse": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "example": "Ini adalah isi dari artikel belajar Golang untuk pemula."
+                },
+                "category_id": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174001"
+                },
+                "image_path": {
+                    "type": "string",
+                    "example": "/uploads/articles/golang.png"
+                },
+                "slug": {
+                    "type": "string",
+                    "example": "belajar-golang-untuk-pemula"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Belajar Golang untuk Pemula"
+                }
+            }
+        },
         "dto.CategoryResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2023-09-01T10:00:00Z"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Golang"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2023-09-01T10:00:00Z"
                 }
             }
         },
@@ -849,7 +881,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Golang"
                 }
             }
         },
@@ -861,13 +894,16 @@ const docTemplate = `{
             ],
             "properties": {
                 "article_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
                 },
                 "body": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Ini adalah komentar pertama"
                 },
                 "parent_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -919,7 +955,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "article_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
                 },
                 "type": {
                     "type": "string",
@@ -930,7 +967,8 @@ const docTemplate = `{
                         "insightful",
                         "funny",
                         "sad"
-                    ]
+                    ],
+                    "example": "like"
                 }
             }
         },
@@ -1014,7 +1052,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Golang"
                 }
             }
         },
@@ -1025,7 +1064,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "body": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Ini adalah komentar pertama"
                 }
             }
         },

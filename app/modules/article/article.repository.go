@@ -2,7 +2,10 @@ package article
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"regexp"
+	"strings"
 	"time"
 	"wordora/app/modules/article/dto"
 	"wordora/app/modules/article/model"
@@ -15,8 +18,8 @@ import (
 
 type ArticleRepository interface {
 	CreateArticle(article *model.Article) (*model.Article, error)
+	GenerateSlug(title string) (string, error)
 	GetAllArticles(limit, offset int, search string) ([]model.Article, int, error)
-	// GetArticleByID(id string, userID string) (*ArticleDetailResponse, error)
 	GetDeleteArticleByID(id string) (*model.Article, error)
 	GetArticleByIDWithDetails(articleID, userID string) (*dto.ArticleDetailResponse, error)
 	UpdateArticle(id string, updatedArticle *model.Article) (*model.Article, error)
@@ -34,12 +37,41 @@ func NewArticleRepository(db *sql.DB) ArticleRepository {
 	}
 }
 
+// func (r *articleRepository) CreateArticle(article *model.Article) (*model.Article, error) {
+// 	article.ID = uuid.NewString()
+
+// 	query, args, err := goqu.Insert("articles").
+// 		Rows(article).
+// 		Returning("id", "title", "category_id", "body", "image_path").
+// 		ToSQL()
+// 	if err != nil {
+// 		log.Println("Error generating SQL:", err)
+// 		return nil, err
+// 	}
+
+// 	var newArticle model.Article
+// 	err = r.db.QueryRow(query, args...).Scan(&newArticle.ID, &newArticle.Title, &newArticle.CategoryID, &newArticle.Body, &newArticle.ImagePath)
+// 	if err != nil {
+// 		log.Println("Error executing query:", err)
+// 		return nil, err
+// 	}
+
+// 	return &newArticle, nil
+// }
+
 func (r *articleRepository) CreateArticle(article *model.Article) (*model.Article, error) {
 	article.ID = uuid.NewString()
 
+	slug, err := r.GenerateSlug(article.Title)
+	if err != nil {
+		log.Println("Error generating slug:", err)
+		return nil, err
+	}
+	article.Slug = slug
+
 	query, args, err := goqu.Insert("articles").
 		Rows(article).
-		Returning("id", "title", "category_id", "body", "image_path").
+		Returning("id", "title", "slug", "category_id", "body", "image_path").
 		ToSQL()
 	if err != nil {
 		log.Println("Error generating SQL:", err)
@@ -47,7 +79,7 @@ func (r *articleRepository) CreateArticle(article *model.Article) (*model.Articl
 	}
 
 	var newArticle model.Article
-	err = r.db.QueryRow(query, args...).Scan(&newArticle.ID, &newArticle.Title, &newArticle.CategoryID, &newArticle.Body, &newArticle.ImagePath)
+	err = r.db.QueryRow(query, args...).Scan(&newArticle.ID, &newArticle.Title, &newArticle.Slug, &newArticle.CategoryID, &newArticle.Body, &newArticle.ImagePath)
 	if err != nil {
 		log.Println("Error executing query:", err)
 		return nil, err
@@ -55,6 +87,38 @@ func (r *articleRepository) CreateArticle(article *model.Article) (*model.Articl
 
 	return &newArticle, nil
 }
+
+func (r *articleRepository) GenerateSlug(title string) (string, error) {
+	re := regexp.MustCompile(`[^a-zA-Z0-9\s]`)
+	slug := strings.ToLower(strings.ReplaceAll(re.ReplaceAllString(title, ""), " ", "-"))
+
+	// Cek apakah slug sudah ada di database menggunakan Goqu
+	baseSlug := slug
+	counter := 1
+	var existingSlug string
+
+	for {
+		found, err := r.db.From("articles").
+			Select("slug").
+			Where(goqu.C("slug").Eq(slug)).
+			ScanVal(&existingSlug)
+
+		if err != nil && err != sql.ErrNoRows {
+			return "", err // Jika ada error selain tidak ditemukan
+		}
+
+		if !found {
+			break // Slug belum ada, bisa digunakan
+		}
+
+		// Jika slug sudah ada, tambahkan angka di akhir
+		slug = fmt.Sprintf("%s-%d", baseSlug, counter)
+		counter++
+	}
+
+	return slug, nil
+}
+
 
 func (r *articleRepository) GetAllArticles(limit, offset int, search string) ([]model.Article, int, error) {
 	var articles []model.Article
@@ -82,17 +146,6 @@ func (r *articleRepository) GetAllArticles(limit, offset int, search string) ([]
 
 	return articles, total, nil
 }
-
-
-// func (r *articleRepository) GetAllArticles() ([]model.Article, error) {
-// 	var articles []model.Article
-// 	err := r.db.From("articles").ScanStructs(&articles)
-// 	if err != nil {
-// 		log.Println("Error fetching articles:", err)
-// 		return nil, err
-// 	}
-// 	return articles, nil
-// }
 
 func (r *articleRepository) GetDeleteArticleByID(id string) (*model.Article, error) {
 	var article model.Article

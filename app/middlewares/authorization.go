@@ -1,48 +1,47 @@
 package middlewares
 
 import (
-	"log"
-	"net/http"
 	"strings"
+	"wordora/app/utils/common"
 	"wordora/app/utils/paseto"
+
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+func extractToken(authHeader string) string {
+	if strings.HasPrefix(authHeader, "Bearer ") {
+		return strings.TrimPrefix(authHeader, "Bearer ")
+	}
+	return authHeader
+}
 
 func AuthMiddleware(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
-			c.Abort()
+			common.GenerateErrorResponse(c, http.StatusUnauthorized, "Missing token", nil)
 			return
 		}
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
-			c.Abort()
-			return
-		}
+		token := extractToken(authHeader)
 
-		payload, err := tokenHelper.ValidateToken(parts[1])
+		payload, err := tokenHelper.ValidateToken(token)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
-			c.Abort()
+			common.GenerateErrorResponse(c, http.StatusUnauthorized, "Invalid or expired token", nil)
 			return
 		}
-		log.Printf("Token Payload: %+v", payload)
 
 		userID, ok := payload["sub"].(string)
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token payload"})
-			c.Abort()
+			common.GenerateErrorResponse(c, http.StatusUnauthorized, "Invalid token payload", nil)
 			return
 		}
 
-		c.Set("sub", userID)
-		log.Printf("Token Payload: %+v", payload)
+		// log.Printf("Token Payload: %+v", payload)
 
+		c.Set("sub", userID)
 		c.Next()
 	}
 }
@@ -51,29 +50,21 @@ func AdminOnly(tokenHelper *paseto.TokenHelper) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
-			c.Abort()
+			common.GenerateErrorResponse(c, http.StatusUnauthorized, "Missing token", nil)
 			return
 		}
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
-			c.Abort()
-			return
-		}
+		token := extractToken(authHeader)
 
-		payload, err := tokenHelper.ValidateToken(parts[1])
+		payload, err := tokenHelper.ValidateToken(token)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
-			c.Abort()
+			common.GenerateErrorResponse(c, http.StatusUnauthorized, "Invalid or expired token", nil)
 			return
 		}
 
 		role, ok := payload["role"].(string)
 		if !ok || role != "admin" {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
-			c.Abort()
+			common.GenerateErrorResponse(c, http.StatusForbidden, "Access denied", nil)
 			return
 		}
 

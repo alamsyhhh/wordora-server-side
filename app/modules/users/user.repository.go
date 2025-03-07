@@ -2,6 +2,7 @@ package users
 
 import (
 	"database/sql"
+	"log"
 	"wordora/app/modules/users/model"
 
 	"github.com/doug-martin/goqu/v9"
@@ -44,4 +45,20 @@ func (r *UserRepository) GetUserByID(id string) (*model.User, error) {
 		return nil, nil
 	}
 	return &user, err
+}
+
+func (r *UserRepository) GetAllViewerUsers() ([]model.User, error) {
+	var users []model.User
+
+	query := r.db.From("users").
+		Select("email").
+		Where(goqu.C("role").Eq("viewer"))
+
+	err := query.ScanStructs(&users)
+	if err != nil {
+		log.Println("Error fetching viewer users:", err)
+		return nil, err
+	}
+
+	return users, nil
 }

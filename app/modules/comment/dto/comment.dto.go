@@ -1,21 +1,21 @@
 package dto
 
 type CreateCommentRequest struct {
-	ArticleID string  `json:"article_id" binding:"required"`
-	ParentID  *string `json:"parent_id"`
-	Body      string  `json:"body" binding:"required"`
+	ArticleID string  `json:"article_id" binding:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
+	ParentID  *string `json:"parent_id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Body      string  `json:"body" binding:"required" example:"Ini adalah komentar pertama"`
 }
 
 type UpdateCommentRequest struct {
-	Body string `json:"body" binding:"required"`
+	Body string `json:"body" binding:"required" example:"Ini adalah komentar pertama"`
 }
 
 type CommentResponse struct {
-	ID        string  `json:"id"`
-	ArticleID string  `json:"article_id"`
-	UserID    string  `json:"user_id"`
-	ParentID  *string `json:"parent_id"`
-	Body      string  `json:"body"`
-	CreatedAt string  `json:"created_at"`
-	UpdatedAt string  `json:"updated_at"`
+	ID        string  `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	ArticleID string  `json:"article_id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	UserID    string  `json:"user_id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	ParentID  *string `json:"parent_id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Body      string  `json:"body" example:"Ini adalah komentar pertama"`
+	CreatedAt string  `json:"created_at" example:"2023-09-01T10:00:00Z"`
+	UpdatedAt string  `json:"updated_at" example:"2023-09-01T10:00:00Z"`
 }
