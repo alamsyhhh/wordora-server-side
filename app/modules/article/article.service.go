@@ -37,108 +37,6 @@ func NewArticleService(articleRepo ArticleRepository, userRepo *users.UserReposi
     }
 }
 
-
-// func (s *articleService) CreateArticle(ctx *gin.Context) {
-// 	var req dto.CreateArticleRequest
-// 	if err := ctx.ShouldBind(&req); err != nil {
-// 		common.GenerateErrorResponse(ctx, http.StatusBadRequest, "Invalid input", err.Error())
-// 		return
-// 	}
-
-// 	var imagePath string
-// 	file, _, err := ctx.Request.FormFile("image")
-// 	if err == nil {
-// 		imageBytes, err := io.ReadAll(file)
-// 		if err != nil {
-// 			common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to read image file", err.Error())
-// 			return
-// 		}
-
-// 		uploadedURL, err := cloudinary.UploadImageToCloudinary(imageBytes)
-// 		if err != nil {
-// 			common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to upload image", err.Error())
-// 			return
-// 		}
-// 		imagePath = uploadedURL
-// 	}
-
-// 	article := &model.Article{
-// 		Title:      req.Title,
-// 		CategoryID: req.CategoryID,
-// 		Body:       req.Body,
-// 		ImagePath:  imagePath,
-// 	}
-
-// 	savedArticle, err := s.articleRepo.CreateArticle(article)
-// 	if err != nil {
-// 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to create article", err.Error())
-// 		return
-// 	}
-
-// 	common.GenerateSuccessResponseWithData(ctx, "Article created successfully", dto.ArticleResponse{
-// 		ID:         savedArticle.ID,
-// 		Title:      savedArticle.Title,
-// 		CategoryID: savedArticle.CategoryID,
-// 		Body:       savedArticle.Body,
-// 		ImagePath:  savedArticle.ImagePath,
-// 	})
-// }
-
-// func (s *articleService) CreateArticle(ctx *gin.Context) {
-// 	var req dto.CreateArticleRequest
-// 	if err := ctx.ShouldBind(&req); err != nil {
-// 		common.GenerateErrorResponse(ctx, http.StatusBadRequest, "Invalid input", err.Error())
-// 		return
-// 	}
-
-// 	var imagePath string
-// 	file, _, err := ctx.Request.FormFile("image")
-// 	if err == nil {
-// 		imageBytes, err := io.ReadAll(file)
-// 		if err != nil {
-// 			common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to read image file", err.Error())
-// 			return
-// 		}
-
-// 		uploadedURL, err := cloudinary.UploadImageToCloudinary(imageBytes)
-// 		if err != nil {
-// 			common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to upload image", err.Error())
-// 			return
-// 		}
-// 		imagePath = uploadedURL
-// 	}
-
-// 	article := &model.Article{
-// 		Title:      req.Title,
-// 		CategoryID: req.CategoryID,
-// 		Body:       req.Body,
-// 		ImagePath:  imagePath,
-// 	}
-
-// 	savedArticle, err := s.articleRepo.CreateArticle(article)
-// 	if err != nil {
-// 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to create article", err.Error())
-// 		return
-// 	}
-	
-// 	users, err := s.userRepo.GetAllViewerUsers()
-// 	if err != nil {
-// 		log.Println("Failed to fetch users:", err)
-// 	}
-
-// 	for _, user := range users {
-// 		go mail.SendNewArticleEmail(user.Email, savedArticle.Title, savedArticle.Body)
-// 	}
-
-// 	common.GenerateSuccessResponseWithData(ctx, "Article created successfully", dto.ArticleResponse{
-// 		ID:         savedArticle.ID,
-// 		Title:      savedArticle.Title,
-// 		CategoryID: savedArticle.CategoryID,
-// 		Body:       savedArticle.Body,
-// 		ImagePath:  savedArticle.ImagePath,
-// 	})
-// }
-
 func (s *articleService) CreateArticle(ctx *gin.Context) {
 	var req dto.CreateArticleRequest
 	if err := ctx.ShouldBind(&req); err != nil {
@@ -195,7 +93,6 @@ func (s *articleService) CreateArticle(ctx *gin.Context) {
 	})
 }
 
-
 func (s *articleService) GetAllArticles(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(ctx.DefaultQuery("offset", "0"))
@@ -236,54 +133,6 @@ func (s *articleService) GetArticleByID(ctx *gin.Context) {
 	common.GenerateSuccessResponseWithData(ctx, "Article retrieved successfully", articleDetail)
 }
 
-// func (s *articleService) UpdateArticle(ctx *gin.Context) {
-//     id := ctx.Param("id")
-
-//     var req dto.UpdateArticleRequest
-//     if err := ctx.ShouldBind(&req); err != nil {
-//         common.GenerateErrorResponse(ctx, http.StatusBadRequest, "Invalid input", err.Error())
-//         return
-//     }
-
-//     if req.CategoryID == "" {
-//         common.GenerateErrorResponse(ctx, http.StatusBadRequest, "Invalid input", "Category ID is required")
-//         return
-//     }
-
-// 	var imagePath string
-// 	file, _, err := ctx.Request.FormFile("image")
-// 	if err == nil {
-// 		imageBytes, err := io.ReadAll(file)
-// 		if err != nil {
-// 			common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to read image file", err.Error())
-// 			return
-// 		}
-
-// 		uploadedURL, err := cloudinary.UploadImageToCloudinary(imageBytes)
-// 		if err != nil {
-// 			common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to upload image", err.Error())
-// 			return
-// 		}
-// 		imagePath = uploadedURL
-// 	}
-
-//     updatedArticle := &model.Article{
-//         Title:      req.Title,
-//         CategoryID: req.CategoryID,
-//         Body:       req.Body,
-// 		ImagePath:  imagePath,
-//     }
-
-//     article, err := s.articleRepo.UpdateArticle(id, updatedArticle)
-//     if err != nil {
-//         fmt.Println("Update Error:", err)
-//         common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to update article", err.Error())
-//         return
-//     }
-
-//     common.GenerateSuccessResponseWithData(ctx, "Article updated successfully", article)
-// }
-
 func (s *articleService) UpdateArticle(ctx *gin.Context) {
     id := ctx.Param("id")
 
@@ -298,16 +147,15 @@ func (s *articleService) UpdateArticle(ctx *gin.Context) {
         return
     }
 
-    // Ambil data artikel lama
     existingArticle, err := s.articleRepo.GetDeleteArticleByID(id)
     if err != nil {
         common.GenerateErrorResponse(ctx, http.StatusNotFound, "Article not found", err.Error())
         return
     }
 
-    var imagePath = existingArticle.ImagePath // Gunakan gambar lama jika tidak ada yang diunggah
+    var imagePath = existingArticle.ImagePath
     file, _, err := ctx.Request.FormFile("image")
-    if err == nil { // Jika ada file yang diunggah
+    if err == nil {
         imageBytes, err := io.ReadAll(file)
         if err != nil {
             common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to read image file", err.Error())
@@ -322,7 +170,6 @@ func (s *articleService) UpdateArticle(ctx *gin.Context) {
         imagePath = uploadedURL
     }
 
-    // Perbarui slug jika judul diubah
     var slug = existingArticle.Slug
     if req.Title != "" && req.Title != existingArticle.Title {
         slug, err = s.articleRepo.GenerateSlug(req.Title)
@@ -349,7 +196,6 @@ func (s *articleService) UpdateArticle(ctx *gin.Context) {
 
     common.GenerateSuccessResponseWithData(ctx, "Article updated successfully", article)
 }
-
 
 func (s *articleService) DeleteArticle(ctx *gin.Context) {
 	id := ctx.Param("id")

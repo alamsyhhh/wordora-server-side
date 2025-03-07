@@ -37,28 +37,6 @@ func NewArticleRepository(db *sql.DB) ArticleRepository {
 	}
 }
 
-// func (r *articleRepository) CreateArticle(article *model.Article) (*model.Article, error) {
-// 	article.ID = uuid.NewString()
-
-// 	query, args, err := goqu.Insert("articles").
-// 		Rows(article).
-// 		Returning("id", "title", "category_id", "body", "image_path").
-// 		ToSQL()
-// 	if err != nil {
-// 		log.Println("Error generating SQL:", err)
-// 		return nil, err
-// 	}
-
-// 	var newArticle model.Article
-// 	err = r.db.QueryRow(query, args...).Scan(&newArticle.ID, &newArticle.Title, &newArticle.CategoryID, &newArticle.Body, &newArticle.ImagePath)
-// 	if err != nil {
-// 		log.Println("Error executing query:", err)
-// 		return nil, err
-// 	}
-
-// 	return &newArticle, nil
-// }
-
 func (r *articleRepository) CreateArticle(article *model.Article) (*model.Article, error) {
 	article.ID = uuid.NewString()
 
@@ -92,7 +70,6 @@ func (r *articleRepository) GenerateSlug(title string) (string, error) {
 	re := regexp.MustCompile(`[^a-zA-Z0-9\s]`)
 	slug := strings.ToLower(strings.ReplaceAll(re.ReplaceAllString(title, ""), " ", "-"))
 
-	// Cek apakah slug sudah ada di database menggunakan Goqu
 	baseSlug := slug
 	counter := 1
 	var existingSlug string
@@ -104,14 +81,13 @@ func (r *articleRepository) GenerateSlug(title string) (string, error) {
 			ScanVal(&existingSlug)
 
 		if err != nil && err != sql.ErrNoRows {
-			return "", err // Jika ada error selain tidak ditemukan
+			return "", err
 		}
 
 		if !found {
-			break // Slug belum ada, bisa digunakan
+			break
 		}
 
-		// Jika slug sudah ada, tambahkan angka di akhir
 		slug = fmt.Sprintf("%s-%d", baseSlug, counter)
 		counter++
 	}
@@ -174,7 +150,6 @@ func (r *articleRepository) GetArticleByIDWithDetails(articleID, userID string) 
 		return nil, sql.ErrNoRows
 	}
 
-	// Ambil semua komentar untuk artikel ini
 	var comments []comment.Comment
 	err = r.db.From("comments").
 		Select("id", "article_id", "user_id", "parent_id", "body", "created_at", "updated_at").
@@ -185,7 +160,6 @@ func (r *articleRepository) GetArticleByIDWithDetails(articleID, userID string) 
 		return nil, err
 	}
 
-	// Ambil semua reaksi dari user yang login
 	var reactions []reactions.Reaction
 	err = r.db.From("reactions").
 		Select("id", "article_id", "user_id", "type", "created_at", "updated_at").
@@ -196,7 +170,6 @@ func (r *articleRepository) GetArticleByIDWithDetails(articleID, userID string) 
 		return nil, err
 	}
 
-	// Gabungkan data ke dalam response
 	response := &dto.ArticleDetailResponse{
 		Article:   article,
 		Comments:  comments,

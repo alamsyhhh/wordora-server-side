@@ -15,7 +15,6 @@ func SendOTPEmail(toEmail string, otpCode string) error {
 	smtpHost := os.Getenv("EMAIL_HOST")
 	smtpPort := os.Getenv("EMAIL_PORT")
 
-	// get path absolut from file
 	basePath, err := os.Getwd()
 	if err != nil {
 		log.Println("Failed to get working directory:", err)
@@ -23,21 +22,18 @@ func SendOTPEmail(toEmail string, otpCode string) error {
 	}
 	templateFile := filepath.Join(basePath, "app", "utils", "mail", "email-verification.html")
 
-	// read template HTML from file
 	templateContent, err := os.ReadFile(templateFile)
 	if err != nil {
 		log.Println("Failed to read email template:", err)
 		return err
 	}
 
-	// Parsing template
 	tmpl, err := template.New("email").Parse(string(templateContent))
 	if err != nil {
 		log.Println("Failed to parse email template:", err)
 		return err
 	}
 
-	// Render template with OTP
 	var body bytes.Buffer
 	err = tmpl.Execute(&body, struct{ OTP string }{OTP: otpCode})
 	if err != nil {

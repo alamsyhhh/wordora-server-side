@@ -43,26 +43,6 @@ func (s *categoryServiceImpl) GetAllCategories(ctx *gin.Context) {
 	common.GenerateSuccessResponseWithData(ctx, "Categories retrieved successfully", paginationResponse)
 }
 
-// func (s *categoryServiceImpl) GetAllCategories(ctx *gin.Context) {
-// 	categories, err := s.repo.GetAllCategories()
-// 	if err != nil {
-// 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch categories", nil)
-// 		return
-// 	}
-
-// 	var responses []dto.CategoryResponse
-// 	for _, category := range categories {
-// 		responses = append(responses, dto.CategoryResponse{
-// 			ID:        category.ID,
-// 			Name:      category.Name,
-// 			CreatedAt: category.Created_at,
-// 			UpdatedAt: category.Updated_at,
-// 		})
-// 	}
-
-// 	common.GenerateSuccessResponseWithData(ctx, "Categories fetched successfully", responses)
-// }
-
 func (s *categoryServiceImpl) CreateCategory(ctx *gin.Context) {
 	var req dto.CreateCategoryRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

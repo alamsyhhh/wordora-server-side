@@ -30,12 +30,6 @@ func (r *categoryRepositoryImpl) CreateCategory(category *model.Category) error 
 	return err
 }
 
-// func (r *categoryRepositoryImpl) GetAllCategories() ([]model.Category, error) {
-// 	var categories []model.Category
-// 	err := r.db.From("categories").ScanStructs(&categories)
-// 	return categories, err
-// }
-
 func (r *categoryRepositoryImpl) GetAllCategories(limit, offset int, search string) ([]model.Category, int, error) {
 	var categories []model.Category
 	var err error
