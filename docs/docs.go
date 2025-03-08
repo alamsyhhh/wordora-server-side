@@ -1097,7 +1097,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "universal-katee-alamsyhh-project-e9000c04.koyeb.app/",
+	Host:             "universal-katee-alamsyhh-project-e9000c04.koyeb.app",
 	BasePath:         "/v1/api",
 	Schemes:          []string{},
 	Title:            "Wordora Blogs API",

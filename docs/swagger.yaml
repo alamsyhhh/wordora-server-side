@@ -182,7 +182,7 @@ definitions:
     - email
     - otp
     type: object
-host: universal-katee-alamsyhh-project-e9000c04.koyeb.app/
+host: universal-katee-alamsyhh-project-e9000c04.koyeb.app
 info:
   contact: {}
   description: This is a sample server for Wordora.
