@@ -6,7 +6,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "localhost:8080",
+    "host": "universal-katee-alamsyhh-project-e9000c04.koyeb.app/",
     "basePath": "/v1/api",
     "paths": {
         "/articles": {
