@@ -18,6 +18,6 @@ func SetupCategoryRoutes(router *gin.RouterGroup, db *sql.DB, tokenHelper *paset
 	protected := router.Group("/")
 	protected.Use(middlewares.AuthMiddleware(tokenHelper))
 	protected.POST("/", categoryController.CreateCategory)
-	protected.PUT("/:id", categoryController.CreateCategory)
+	protected.PUT("/:id", categoryController.UpdateCategory)
 	protected.DELETE("/:id", categoryController.DeleteCategory)
 }

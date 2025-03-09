@@ -6,7 +6,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "universal-katee-alamsyhh-project-e9000c04.koyeb.app",
+    "host": "localhost:8080",
     "basePath": "/v1/api",
     "paths": {
         "/articles": {
@@ -811,6 +811,15 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Role",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateUserRoleRequest"
+                        }
                     }
                 ],
                 "responses": {}
@@ -1060,6 +1069,22 @@
                 "body": {
                     "type": "string",
                     "example": "Ini adalah komentar pertama"
+                }
+            }
+        },
+        "dto.UpdateUserRoleRequest": {
+            "type": "object",
+            "required": [
+                "role"
+            ],
+            "properties": {
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "admin",
+                        "user",
+                        "moderator"
+                    ]
                 }
             }
         },

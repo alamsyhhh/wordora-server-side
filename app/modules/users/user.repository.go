@@ -3,6 +3,7 @@ package users
 import (
 	"database/sql"
 	"log"
+	"time"
 	"wordora/app/modules/users/model"
 
 	"github.com/doug-martin/goqu/v9"
@@ -32,11 +33,16 @@ func (r *UserRepository) GetUserByEmail(email string) (*model.User, error) {
 
 func (r *UserRepository) UpdateUser(user *model.User) error {
     _, err := r.db.Update("users").
-        Set(user).
+        Set(goqu.Record{"role": user.Role, "updated_at": time.Now()}).
         Where(goqu.Ex{"id": user.ID}).
         Executor().Exec()
+    if err != nil {
+        log.Println("Failed to execute update query:", err)
+    }
     return err
 }
+
+
 
 func (r *UserRepository) GetUserByID(id string) (*model.User, error) {
 	var user model.User

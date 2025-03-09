@@ -1,6 +1,8 @@
 package users
 
 import (
+	"errors"
+	"log"
 	"wordora/app/modules/users/model"
 )
 
@@ -17,11 +19,20 @@ func (s *UserService) GetMe(userID string) (*model.User, error) {
 }
 
 func (s *UserService) UpdateUserRole(userID, role string) error {
+	log.Println("UpdateUserRole called with userID:", userID, "role:", role)
+
 	user, err := s.repo.GetUserByID(userID)
 	if err != nil {
+		log.Println("Error fetching user:", err)
 		return err
+	}
+	if user == nil {
+		log.Println("User not found")
+		return errors.New("user not found")
 	}
 
 	user.Role = role
+	log.Println("Updating user role:", user)
 	return s.repo.UpdateUser(user)
 }
+

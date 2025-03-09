@@ -2,6 +2,7 @@ package users
 
 import (
 	"net/http"
+	"wordora/app/modules/users/dto"
 	"wordora/app/utils/common"
 
 	"github.com/gin-gonic/gin"
@@ -46,13 +47,12 @@ func (c *UserController) GetMe(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
+// @Param request body dto.UpdateUserRoleRequest true "Role"
 // @Router /users/{id}/role [put]
 // @Security BearerAuth
 func (c *UserController) UpdateUserRole(ctx *gin.Context) {
 	userID := ctx.Param("id")
-	var req struct {
-		Role string `json:"role" binding:"required"`
-	}
+	var req dto.UpdateUserRoleRequest
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		common.GenerateErrorResponse(ctx, http.StatusBadRequest, "Invalid request", nil)
@@ -63,6 +63,7 @@ func (c *UserController) UpdateUserRole(ctx *gin.Context) {
 		common.GenerateErrorResponse(ctx, http.StatusInternalServerError, "Failed to update role", nil)
 		return
 	}
+
 
 	common.GenerateSuccessResponse(ctx, "User role updated successfully")
 }

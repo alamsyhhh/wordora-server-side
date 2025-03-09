@@ -18,7 +18,7 @@ import (
 // @title Wordora Blogs API
 // @version 1.0
 // @description This is a sample server for Wordora.
-// @host universal-katee-alamsyhh-project-e9000c04.koyeb.app
+// @host localhost:8080
 // @BasePath /v1/api
 // @securityDefinitions.apikey BearerAuth
 // @in header

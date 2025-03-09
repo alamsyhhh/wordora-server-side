@@ -70,19 +70,10 @@ func (r *categoryRepositoryImpl) GetCategoryByID(id string) (*model.Category, er
 }
 
 func (r *categoryRepositoryImpl) UpdateCategory(id string, name string) error {
-	result, err := r.db.Update("categories").
+	_, err := r.db.Update("categories").
 		Set(goqu.Record{"name": name, "updated_at": goqu.L("CURRENT_TIMESTAMP")}).
 		Where(goqu.Ex{"id": id}).Executor().Exec()
-
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, _ := result.RowsAffected()
-	if rowsAffected == 0 {
-		return errors.New("category not found, update failed")
-	}
-	return nil
+	return err
 }
 
 func (r *categoryRepositoryImpl) DeleteCategory(id string) error {

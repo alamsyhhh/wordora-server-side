@@ -172,6 +172,17 @@ definitions:
     required:
     - body
     type: object
+  dto.UpdateUserRoleRequest:
+    properties:
+      role:
+        enum:
+        - admin
+        - user
+        - moderator
+        type: string
+    required:
+    - role
+    type: object
   dto.VerifyOTPRequest:
     properties:
       email:
@@ -182,7 +193,7 @@ definitions:
     - email
     - otp
     type: object
-host: universal-katee-alamsyhh-project-e9000c04.koyeb.app
+host: localhost:8080
 info:
   contact: {}
   description: This is a sample server for Wordora.
@@ -687,6 +698,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: Role
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRoleRequest'
       produces:
       - application/json
       responses: {}
