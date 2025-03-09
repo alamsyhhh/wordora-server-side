@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"log"
 	"time"
 	"wordora/app/modules/auth/dto"
 	"wordora/app/modules/otp"
@@ -126,39 +127,46 @@ func (s *AuthService) Login(ctx *gin.Context, req dto.LoginRequest) {
 }
 
 func (s *AuthService) VerifyOTP(ctx *gin.Context, req dto.VerifyOTPRequest) {
-	user, err := s.userRepo.GetUserByEmail(req.Email)
-	if err != nil || user == nil {
-		common.GenerateErrorResponse(ctx, 400, "User not found", nil)
-		return
-	}
+    user, err := s.userRepo.GetUserByEmail(req.Email)
+    if err != nil || user == nil {
+        common.GenerateErrorResponse(ctx, 400, "User not found", nil)
+        return
+    }
 
-	otp, err := s.otpRepo.GetOTPByUserID(user.ID)
-	if err != nil || otp == nil {
-		common.GenerateErrorResponse(ctx, 400, "Invalid or expired OTP", nil)
-		return
-	}
+    otp, err := s.otpRepo.GetOTPByUserID(user.ID)
+    if err != nil || otp == nil {
+        common.GenerateErrorResponse(ctx, 400, "Invalid or expired OTP", nil)
+        return
+    }
 
-	if time.Now().After(otp.ExpiredAt) {
-		s.otpRepo.DeleteOTPByUserID(user.ID)
-		common.GenerateErrorResponse(ctx, 400, "OTP has expired", nil)
-		return
-	}
+    if time.Now().After(otp.ExpiredAt) {
+        s.otpRepo.DeleteOTPByUserID(user.ID)
+        common.GenerateErrorResponse(ctx, 400, "OTP has expired", nil)
+        return
+    }
 
-	if otp.OTPCode != req.OTP {
-		common.GenerateErrorResponse(ctx, 400, "Incorrect OTP", nil)
-		return
-	}
+    if otp.OTPCode != req.OTP {
+        common.GenerateErrorResponse(ctx, 400, "Incorrect OTP", nil)
+        return
+    }
 
-	user.IsEmailVerified = true
-	if err := s.userRepo.UpdateUser(user); err != nil {
-		common.GenerateErrorResponse(ctx, 500, "Failed to update user", nil)
-		return
-	}
+    log.Println("Before update - isEmailVerified:", user.IsEmailVerified)
 
-	s.otpRepo.DeleteOTPByUserID(user.ID)
+    user.IsEmailVerified = true
 
-	common.GenerateSuccessResponse(ctx, "OTP verified successfully. Email is now verified.")
+    if err := s.userRepo.UpdateUser(user); err != nil {
+        log.Println("Failed to update user:", err)
+        common.GenerateErrorResponse(ctx, 500, "Failed to update user", nil)
+        return
+    }
+
+    log.Println("After update - isEmailVerified:", user.IsEmailVerified)
+
+    s.otpRepo.DeleteOTPByUserID(user.ID)
+
+    common.GenerateSuccessResponse(ctx, "OTP verified successfully. Email is now verified.")
 }
+
 
 func (s *AuthService) ResendOTP(ctx *gin.Context, req dto.ResendOTPRequest) {
 	user, err := s.userRepo.GetUserByEmail(req.Email)
@@ -172,7 +180,6 @@ func (s *AuthService) ResendOTP(ctx *gin.Context, req dto.ResendOTPRequest) {
 		return
 	}
 
-	// Hapus OTP lama sebelum membuat yang baru
 	if err := s.otpRepo.DeleteOTPByUserID(user.ID); err != nil {
 		common.GenerateErrorResponse(ctx, 500, "Failed to delete previous OTP", nil)
 		return

@@ -33,6 +33,6 @@ func (s *UserService) UpdateUserRole(userID, role string) error {
 
 	user.Role = role
 	log.Println("Updating user role:", user)
-	return s.repo.UpdateUser(user)
+	return s.repo.UpdateUserRole(user)
 }
 

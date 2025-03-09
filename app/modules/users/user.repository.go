@@ -32,6 +32,27 @@ func (r *UserRepository) GetUserByEmail(email string) (*model.User, error) {
 }
 
 func (r *UserRepository) UpdateUser(user *model.User) error {
+    result, err := r.db.Update("users").
+        Set(goqu.Record{
+            "is_email_verified": user.IsEmailVerified,
+            "updated_at":        time.Now(),
+        }).
+        Where(goqu.Ex{"id": user.ID}).
+        Executor().Exec()
+
+    if err != nil {
+        log.Println("Failed to execute update query:", err)
+    } else {
+        rowsAffected, _ := result.RowsAffected()
+        log.Println("Rows affected:", rowsAffected)
+    }
+
+    return err
+}
+
+
+
+func (r *UserRepository) UpdateUserRole(user *model.User) error {
     _, err := r.db.Update("users").
         Set(goqu.Record{"role": user.Role, "updated_at": time.Now()}).
         Where(goqu.Ex{"id": user.ID}).
@@ -41,8 +62,6 @@ func (r *UserRepository) UpdateUser(user *model.User) error {
     }
     return err
 }
-
-
 
 func (r *UserRepository) GetUserByID(id string) (*model.User, error) {
 	var user model.User
